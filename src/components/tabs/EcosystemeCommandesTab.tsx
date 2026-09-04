@@ -46,6 +46,7 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  AlertCircle,
   ArrowRight,
   ShieldAlert,
   Search,
@@ -174,7 +175,7 @@ export const EcosystemeCommandesTab: React.FC<EcosystemeCommandesTabProps> = ({
   // EN-TÊTE FIXE DU HAUT (MON CLIENT, CLIENT DE MON CLIENT, DATE)
   // Valeurs propres et vierges par défaut — zéro brouillon fantôme
   // =========================================================================
-  const [monClient, setMonClient] = useState<string>(() => INITIAL_CLIENT_CODIFICATIONS[0]?.nom || 'SOMODAL Oran');
+  const [monClient, setMonClient] = useState<string>('');
   const [clientDeMonClient, setClientDeMonClient] = useState<string>('');
   const [dateCommande, setDateCommande] = useState<string>(() => getTodayDateString());
 
@@ -523,11 +524,11 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
 
   // Objets d'articles réels dérivés en direct de la base SQLite
   const currentCTArticle = useMemo(() => {
-    return articlesCT.find(a => a.code_art === caissonConfig.ctArticleCode) || articlesCT[0] || null;
+    return articlesCT.find(a => a.code_art === caissonConfig.ctArticleCode) || null;
   }, [articlesCT, caissonConfig.ctArticleCode]);
 
   const currentSFArticle = useMemo(() => {
-    return articlesSF.find(a => a.code_art === caissonConfig.sfArticleCode) || articlesSF[0] || null;
+    return articlesSF.find(a => a.code_art === caissonConfig.sfArticleCode) || null;
   }, [articlesSF, caissonConfig.sfArticleCode]);
 
   // --- B. TABLIER / VOLET ROULANT ---
@@ -541,15 +542,15 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
   });
 
   const currentTBLArticle = useMemo(() => {
-    return articlesTablier.find(a => a.code_art === tablierConfig.articleCode) || articlesTablier[0] || null;
+    return articlesTablier.find(a => a.code_art === tablierConfig.articleCode) || null;
   }, [articlesTablier, tablierConfig.articleCode]);
 
   const currentLFArticle = useMemo(() => {
-    return articlesLameFinale.find(a => a.code_art === tablierConfig.lfArticleCode) || articlesLameFinale[0] || null;
+    return articlesLameFinale.find(a => a.code_art === tablierConfig.lfArticleCode) || null;
   }, [articlesLameFinale, tablierConfig.lfArticleCode]);
 
   const currentGLArticle = useMemo(() => {
-    return articlesCoulisses.find(a => a.code_art === tablierConfig.glArticleCode) || articlesCoulisses[0] || null;
+    return articlesCoulisses.find(a => a.code_art === tablierConfig.glArticleCode) || null;
   }, [articlesCoulisses, tablierConfig.glArticleCode]);
 
   // --- D. PRÉCADRE ---
@@ -564,44 +565,44 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
   });
 
   const currentPRCArticle = useMemo(() => {
-    return articlesPrecadre.find(a => a.code_art === precadreConfig.articleCode) || articlesPrecadre[0] || null;
+    return articlesPrecadre.find(a => a.code_art === precadreConfig.articleCode) || null;
   }, [articlesPrecadre, precadreConfig.articleCode]);
 
   const currentBouchonArticle = useMemo(() => {
-    return articlesBouchonPrecadre.find(a => a.code_art === precadreConfig.bouchonArticleCode) || articlesBouchonPrecadre[0] || null;
+    return articlesBouchonPrecadre.find(a => a.code_art === precadreConfig.bouchonArticleCode) || null;
   }, [articlesBouchonPrecadre, precadreConfig.bouchonArticleCode]);
 
-  // Synchronisation automatique des sélections si la liste SQLite change
+  // Synchronisation de sécurité si un article sélectionné n'existe plus dans la base SQLite
   useEffect(() => {
-    if (articlesCT.length > 0 && (!caissonConfig.ctArticleCode || !articlesCT.some(a => a.code_art === caissonConfig.ctArticleCode))) {
-      setCaissonConfig(prev => ({ ...prev, ctArticleCode: articlesCT[0].code_art }));
+    if (caissonConfig.ctArticleCode && articlesCT.length > 0 && !articlesCT.some(a => a.code_art === caissonConfig.ctArticleCode)) {
+      setCaissonConfig(prev => ({ ...prev, ctArticleCode: '' }));
     }
   }, [articlesCT, caissonConfig.ctArticleCode]);
 
   useEffect(() => {
-    if (articlesSF.length > 0 && (!caissonConfig.sfArticleCode || !articlesSF.some(a => a.code_art === caissonConfig.sfArticleCode))) {
-      setCaissonConfig(prev => ({ ...prev, sfArticleCode: articlesSF[0].code_art }));
+    if (caissonConfig.sfArticleCode && articlesSF.length > 0 && !articlesSF.some(a => a.code_art === caissonConfig.sfArticleCode)) {
+      setCaissonConfig(prev => ({ ...prev, sfArticleCode: '' }));
     }
   }, [articlesSF, caissonConfig.sfArticleCode]);
 
   useEffect(() => {
-    if (articlesTablier.length > 0 && (!tablierConfig.articleCode || !articlesTablier.some(a => a.code_art === tablierConfig.articleCode))) {
-      setTablierConfig(prev => ({ ...prev, articleCode: articlesTablier[0].code_art }));
+    if (tablierConfig.articleCode && articlesTablier.length > 0 && !articlesTablier.some(a => a.code_art === tablierConfig.articleCode)) {
+      setTablierConfig(prev => ({ ...prev, articleCode: '' }));
     }
-    if (articlesLameFinale.length > 0 && (!tablierConfig.lfArticleCode || !articlesLameFinale.some(a => a.code_art === tablierConfig.lfArticleCode))) {
-      setTablierConfig(prev => ({ ...prev, lfArticleCode: articlesLameFinale[0].code_art }));
+    if (tablierConfig.lfArticleCode && articlesLameFinale.length > 0 && !articlesLameFinale.some(a => a.code_art === tablierConfig.lfArticleCode)) {
+      setTablierConfig(prev => ({ ...prev, lfArticleCode: '' }));
     }
-    if (articlesCoulisses.length > 0 && (!tablierConfig.glArticleCode || !articlesCoulisses.some(a => a.code_art === tablierConfig.glArticleCode))) {
-      setTablierConfig(prev => ({ ...prev, glArticleCode: articlesCoulisses[0].code_art }));
+    if (tablierConfig.glArticleCode && articlesCoulisses.length > 0 && !articlesCoulisses.some(a => a.code_art === tablierConfig.glArticleCode)) {
+      setTablierConfig(prev => ({ ...prev, glArticleCode: '' }));
     }
   }, [articlesTablier, articlesLameFinale, articlesCoulisses, tablierConfig.articleCode, tablierConfig.lfArticleCode, tablierConfig.glArticleCode]);
 
   useEffect(() => {
-    if (articlesPrecadre.length > 0 && (!precadreConfig.articleCode || !articlesPrecadre.some(a => a.code_art === precadreConfig.articleCode))) {
-      setPrecadreConfig(prev => ({ ...prev, articleCode: articlesPrecadre[0].code_art }));
+    if (precadreConfig.articleCode && articlesPrecadre.length > 0 && !articlesPrecadre.some(a => a.code_art === precadreConfig.articleCode)) {
+      setPrecadreConfig(prev => ({ ...prev, articleCode: '' }));
     }
-    if (articlesBouchonPrecadre.length > 0 && (!precadreConfig.bouchonArticleCode || !articlesBouchonPrecadre.some(a => a.code_art === precadreConfig.bouchonArticleCode))) {
-      setPrecadreConfig(prev => ({ ...prev, bouchonArticleCode: articlesBouchonPrecadre[0].code_art }));
+    if (precadreConfig.bouchonArticleCode && articlesBouchonPrecadre.length > 0 && !articlesBouchonPrecadre.some(a => a.code_art === precadreConfig.bouchonArticleCode)) {
+      setPrecadreConfig(prev => ({ ...prev, bouchonArticleCode: '' }));
     }
   }, [articlesPrecadre, articlesBouchonPrecadre, precadreConfig.articleCode, precadreConfig.bouchonArticleCode]);
 
@@ -1189,19 +1190,19 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
     modele: 'MOUSTIQUAIRE PLISSÉE'
   });
 
-  // Initialisation auto des sélections par défaut si non définies
+  // Sécurité si un article sélectionné n'existe plus dans la base SQLite
   useEffect(() => {
-    if (!mstqConfig.mailleArticleCode && articlesMailleMSTQ[0]) {
-      setMstqConfig(prev => ({ ...prev, mailleArticleCode: articlesMailleMSTQ[0].code_art, mailleArticleDesignation: articlesMailleMSTQ[0].designation }));
+    if (mstqConfig.mailleArticleCode && articlesMailleMSTQ.length > 0 && !articlesMailleMSTQ.some(a => a.code_art === mstqConfig.mailleArticleCode)) {
+      setMstqConfig(prev => ({ ...prev, mailleArticleCode: '', mailleArticleDesignation: '' }));
     }
-    if (!mstqConfig.cadreArticleCode && articlesCadreMSTQ[0]) {
-      setMstqConfig(prev => ({ ...prev, cadreArticleCode: articlesCadreMSTQ[0].code_art, cadreArticleDesignation: articlesCadreMSTQ[0].designation }));
+    if (mstqConfig.cadreArticleCode && articlesCadreMSTQ.length > 0 && !articlesCadreMSTQ.some(a => a.code_art === mstqConfig.cadreArticleCode)) {
+      setMstqConfig(prev => ({ ...prev, cadreArticleCode: '', cadreArticleDesignation: '' }));
     }
-    if (!mstqConfig.coulisseArticleCode && articlesCoulisseMSTQ[0]) {
-      setMstqConfig(prev => ({ ...prev, coulisseArticleCode: articlesCoulisseMSTQ[0].code_art, coulisseArticleDesignation: articlesCoulisseMSTQ[0].designation }));
+    if (mstqConfig.coulisseArticleCode && articlesCoulisseMSTQ.length > 0 && !articlesCoulisseMSTQ.some(a => a.code_art === mstqConfig.coulisseArticleCode)) {
+      setMstqConfig(prev => ({ ...prev, coulisseArticleCode: '', coulisseArticleDesignation: '' }));
     }
-    if (!mstqConfig.barreInfArticleCode && articlesBarreInfMSTQ[0]) {
-      setMstqConfig(prev => ({ ...prev, barreInfArticleCode: articlesBarreInfMSTQ[0].code_art, barreInfArticleDesignation: articlesBarreInfMSTQ[0].designation }));
+    if (mstqConfig.barreInfArticleCode && articlesBarreInfMSTQ.length > 0 && !articlesBarreInfMSTQ.some(a => a.code_art === mstqConfig.barreInfArticleCode)) {
+      setMstqConfig(prev => ({ ...prev, barreInfArticleCode: '', barreInfArticleDesignation: '' }));
     }
   }, [articlesMailleMSTQ, articlesCadreMSTQ, articlesCoulisseMSTQ, articlesBarreInfMSTQ]);
 
@@ -2695,6 +2696,7 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
   // 1. Démarrer un NOUVEAU DOSSIER complet (Réinitialise tout, prépare un nouveau client et de nouvelles commandes)
   const handleNouveauDossier = () => {
     setEditingDossierId(null);
+    setMonClient('');
     setNumCommandeCaisson('');
     setNumCommandeSousFace('');
     setNumCommandeTablier('');
@@ -2711,17 +2713,36 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
     setInputQte('1');
     setInputRepere('');
     setModeSaisieActif(true);  // Activer le mode saisie
-    const upper = (monClient || '').toUpperCase();
-    const isCristal = upper.includes('CRISTAL');
     setCaissonConfig(prev => ({
       ...prev,
-      avecPeinture: isCristal
+      ctArticleCode: '',
+      sfArticleCode: '',
+      avecPeinture: false
     }));
-    showFlashNotification('📁 Nouveau Dossier initialisé. Saisissez le Nom du Client.', 'info');
+    setTablierConfig(prev => ({
+      ...prev,
+      articleCode: '',
+      lfArticleCode: '',
+      glArticleCode: ''
+    }));
+    setPrecadreConfig(prev => ({
+      ...prev,
+      articleCode: '',
+      bouchonArticleCode: ''
+    }));
+    setMstqConfig(prev => ({
+      ...prev,
+      mailleArticleCode: '',
+      mailleArticleDesignation: '',
+      cadreArticleCode: '',
+      cadreArticleDesignation: '',
+      coulisseArticleCode: '',
+      coulisseArticleDesignation: '',
+      barreInfArticleCode: '',
+      barreInfArticleDesignation: ''
+    }));
+    showFlashNotification('📁 Nouveau Dossier initialisé. Veuillez sélectionner Mon Client puis le Client Final.', 'info');
     editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => {
-      inputClientRef.current?.focus();
-    }, 100);
   };
 
   // 2. Démarrer une NOUVELLE COMMANDE dans le MÊME DOSSIER
@@ -2896,21 +2917,122 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
     }, 80);
   };
 
+  // =========================================================================
+  // VALIDATION STRICTE DES CHAMPS OBLIGATOIRES (SOLUTION A + D FUSIONNÉE)
+  // En cas d'oubli de saisie d'un champ obligatoire, le bouton d'ajout est inactif
+  // et les champs manquants sont clairement indiqués à l'utilisateur
+  // =========================================================================
+  const champsManquants = useMemo(() => {
+    const manquants: string[] = [];
+
+    // 1. Mon Client (Donneur d'Ordre)
+    if (!monClient || !monClient.trim()) {
+      manquants.push("Mon Client (Donneur d'Ordre)");
+    }
+
+    // 2. Client Final / Chantier
+    if (!clientDeMonClient || !clientDeMonClient.trim()) {
+      manquants.push("Client Final (Chantier / Promoteur)");
+    }
+
+    // 3. N° de commande pour l'onglet actif
+    const activeNumCmd = extraireNumeroSansPrefixe(getActiveNumCommande(), clientCodifications);
+    if (!activeNumCmd || !activeNumCmd.trim()) {
+      const famNom =
+        familleArticle === 'CAISSON'
+          ? 'N° Commande Caisson & SF'
+          : familleArticle === 'TABLIER'
+          ? 'N° Commande Volet / Tablier'
+          : familleArticle === 'MOUSTIQUAIRE'
+          ? 'N° Commande Moustiquaire'
+          : 'N° Commande Précadre';
+      manquants.push(famNom);
+    }
+
+    // 4. Profilés et dimensions selon la famille
+    if (familleArticle === 'CAISSON') {
+      const isSFSeule = caissonConfig.typeCommande === 'SOUS_FACE_SEULE';
+      const isCaissonSeul = caissonConfig.typeCommande === 'CAISSON_SEUL';
+      if (!isSFSeule && !caissonConfig.ctArticleCode) {
+        manquants.push("Type de Caisson Tunnel");
+      }
+      if (!isCaissonSeul && !caissonConfig.sfArticleCode) {
+        manquants.push("Profil Sous-Face (SF)");
+      }
+      const l = parseFloat(inputL);
+      if (isNaN(l) || l <= 0) {
+        manquants.push(isSFSeule ? "Longueur Sous-Face (mm)" : "Longueur Caisson (mm)");
+      }
+    } else if (familleArticle === 'TABLIER') {
+      if (!tablierConfig.articleCode) {
+        manquants.push("Lame Tablier");
+      }
+      if (tablierConfig.avecLameFinale && !tablierConfig.lfArticleCode) {
+        manquants.push("Lame Finale");
+      }
+      if (tablierConfig.typeFabrication === 'VOLET_COMPLET' && !tablierConfig.glArticleCode) {
+        manquants.push("Coulisses");
+      }
+      const l = parseFloat(inputL);
+      if (isNaN(l) || l <= 0) manquants.push("Largeur L (mm)");
+      const h = parseFloat(inputH);
+      if (isNaN(h) || h <= 0) manquants.push("Hauteur H (mm)");
+    } else if (familleArticle === 'PRECADRE') {
+      if (!precadreConfig.articleCode) {
+        manquants.push("Profilé Précadre");
+      }
+      const l = parseFloat(inputL);
+      if (isNaN(l) || l <= 0) manquants.push("Largeur L (mm)");
+      const h = parseFloat(inputH);
+      if (isNaN(h) || h <= 0) manquants.push("Hauteur H (mm)");
+    } else if (familleArticle === 'MOUSTIQUAIRE') {
+      if (mstqConfig.typeFabrication !== 'PROFILES_SEULS' && !mstqConfig.mailleArticleCode) {
+        manquants.push("Maille Moustiquaire");
+      }
+      if (mstqConfig.typeFabrication !== 'SEMI_FINI_MAILLE') {
+        if (!mstqConfig.cadreArticleCode) manquants.push("Profil Cadre");
+        if (mstqConfig.typeOuverture !== 'FIXE' && !mstqConfig.coulisseArticleCode) manquants.push("Profil Coulisse");
+        if (mstqConfig.avecBarreInferieure && !mstqConfig.barreInfArticleCode) manquants.push("Barre Inférieure");
+      }
+      const l = parseFloat(inputL);
+      if (isNaN(l) || l <= 0) manquants.push("Largeur L (mm)");
+      const h = parseFloat(inputH);
+      if (isNaN(h) || h <= 0) manquants.push("Hauteur H (mm)");
+    }
+
+    // 5. Quantité
+    const qte = parseInt(inputQte, 10);
+    if (isNaN(qte) || qte <= 0) {
+      manquants.push("Quantité (> 0)");
+    }
+
+    return manquants;
+  }, [
+    monClient,
+    clientDeMonClient,
+    familleArticle,
+    numCommandeCaisson,
+    numCommandeTablier,
+    numCommandeMoustiquaire,
+    numCommandePrecadre,
+    clientCodifications,
+    caissonConfig,
+    tablierConfig,
+    precadreConfig,
+    mstqConfig,
+    inputL,
+    inputH,
+    inputQte
+  ]);
+
+  const canAjouterLigne = champsManquants.length === 0;
+
   // AJOUT D'UNE LIGNE AVEC HÉRITAGE AUTOMATIQUE DES RÉGLAGES EN HAUT
   const handleAjouterLigne = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    if (!clientDeMonClient.trim()) {
-      showFlashNotification("⚠️ Veuillez d'abord renseigner le Nom du Client de Mon Client (Chantier / Promoteur).", 'warn');
-      inputClientRef.current?.focus();
-      return;
-    }
-
-    const activeNumCmd = getActiveNumCommande();
-    if (!activeNumCmd.trim()) {
-      const famNom = familleArticle === 'CAISSON' ? 'Caisson & Sous-Face' : familleArticle === 'TABLIER' ? 'Volet / Tablier' : familleArticle === 'MOUSTIQUAIRE' ? 'Moustiquaire' : 'Précadre';
-      showFlashNotification(`⚠️ Veuillez d'abord saisir le Numéro de Commande pour ${famNom}.`, 'warn');
-      inputNumCmdRef.current?.focus();
+    if (!canAjouterLigne) {
+      showFlashNotification(`⚠️ Impossible de valider : veuillez renseigner [ ${champsManquants.join(' • ')} ]`, 'warn');
       return;
     }
 
@@ -2931,10 +3053,10 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
       const isCaissonSeul = caissonConfig.typeCommande === 'CAISSON_SEUL';
       const avecSF = caissonConfig.typeCommande === 'CAISSON_ET_SOUS_FACE' || isSFSeule;
 
-      const ctCode = isSFSeule ? undefined : (currentCTArticle?.code_art || caissonConfig.ctArticleCode || 'ART0011');
-      const ctDesig = isSFSeule ? undefined : (currentCTArticle?.designation || 'CT SOMO 30 ARRONDI');
-      const sfCode = avecSF ? (currentSFArticle?.code_art || caissonConfig.sfArticleCode || 'ART0022') : undefined;
-      const sfDesig = avecSF ? (currentSFArticle?.designation || 'SF 300 (SOUS-FACE 300MM)') : undefined;
+      const ctCode = isSFSeule ? undefined : (caissonConfig.ctArticleCode || currentCTArticle?.code_art);
+      const ctDesig = isSFSeule ? undefined : (currentCTArticle?.designation || '');
+      const sfCode = avecSF ? (caissonConfig.sfArticleCode || currentSFArticle?.code_art) : undefined;
+      const sfDesig = avecSF ? (currentSFArticle?.designation || '') : undefined;
 
       const autoRepere = inputRepere.trim() || genererRepereCaissonSousFace({
         donneurOrdreNom: monClient,
@@ -3384,8 +3506,13 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
             <select
               value={monClient}
               onChange={e => handleMonClientChange(e.target.value)}
-              className="w-full bg-slate-900 border border-sky-500/40 rounded-lg px-3 py-2 text-xs text-sky-200 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner cursor-pointer"
+              className={`w-full bg-slate-900 border rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 shadow-inner cursor-pointer transition ${
+                !monClient
+                  ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                  : 'border-sky-500/40 text-sky-200 focus:ring-sky-500'
+              }`}
             >
+              <option value="">-- Sélectionner Mon Client (Obligatoire) * --</option>
               {clientCodifications.filter(c => c.actif !== false).map(d => (
                 <option key={d.id || d.code} value={d.nom}>
                   {d.nom} ({d.prefixeCommande} — {d.description || d.nom})
@@ -3411,8 +3538,12 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                   inputNumCmdRef.current?.focus();
                 }
               }}
-              placeholder="Nom du Client / Chantier / Promoteur"
-              className="w-full bg-slate-900 border border-emerald-500/40 rounded-lg px-3 py-2 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner"
+              placeholder="Nom du Client / Chantier / Promoteur (Obligatoire) *"
+              className={`w-full bg-slate-900 border rounded-lg px-3 py-2 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-2 shadow-inner transition ${
+                !clientDeMonClient.trim()
+                  ? 'border-amber-500/80 text-amber-200 ring-2 ring-amber-500/20 bg-amber-950/20 placeholder:text-amber-400/60'
+                  : 'border-emerald-500/40 focus:ring-emerald-500'
+              }`}
             />
           </div>
 
@@ -3736,17 +3867,18 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                     disabled={caissonConfig.typeCommande === 'SOUS_FACE_SEULE'}
                     value={caissonConfig.ctArticleCode}
                     onChange={e => handleSelectCaissonCT(e.target.value)}
-                    className="w-full bg-slate-950 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-black focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-inner"
+                    className={`w-full bg-slate-950 border rounded-lg px-2.5 py-1.5 text-xs font-black focus:outline-none focus:ring-1 shadow-inner transition ${
+                      !caissonConfig.ctArticleCode && caissonConfig.typeCommande !== 'SOUS_FACE_SEULE'
+                        ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                        : 'border-emerald-500/50 text-amber-300 focus:ring-emerald-500'
+                    }`}
                   >
-                    {articlesCT.length === 0 ? (
-                      <option value="">(Aucun caisson dans la base d'articles)</option>
-                    ) : (
-                      articlesCT.map(a => (
-                        <option key={a.code_art} value={a.code_art}>
-                          {a.designation}
-                        </option>
-                      ))
-                    )}
+                    <option value="">-- Choisir le Type de Caisson (Obligatoire) * --</option>
+                    {articlesCT.map(a => (
+                      <option key={a.code_art} value={a.code_art}>
+                        {a.designation}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -3762,17 +3894,18 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                     disabled={caissonConfig.typeCommande === 'CAISSON_SEUL'}
                     value={caissonConfig.sfArticleCode}
                     onChange={e => handleSelectSousFaceSF(e.target.value)}
-                    className="w-full bg-slate-950 border border-sky-500/50 disabled:opacity-40 rounded-lg px-2.5 py-1.5 text-xs text-sky-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner"
+                    className={`w-full bg-slate-950 border disabled:opacity-40 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 shadow-inner transition ${
+                      !caissonConfig.sfArticleCode && caissonConfig.typeCommande !== 'CAISSON_SEUL'
+                        ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                        : 'border-sky-500/50 text-sky-200 focus:ring-sky-500'
+                    }`}
                   >
-                    {articlesSF.length === 0 ? (
-                      <option value="">(Aucune sous-face dans la base d'articles)</option>
-                    ) : (
-                      articlesSF.map(s => (
-                        <option key={s.code_art} value={s.code_art}>
-                          {s.designation}
-                        </option>
-                      ))
-                    )}
+                    <option value="">-- Choisir la Sous-Face (Obligatoire) * --</option>
+                    {articlesSF.map(s => (
+                      <option key={s.code_art} value={s.code_art}>
+                        {s.designation}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -4038,17 +4171,18 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                         });
                       }
                     }}
-                    className="w-full bg-slate-900 border border-amber-500/40 rounded-lg px-2 py-1.5 text-xs text-amber-200 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 shadow-inner"
+                    className={`w-full bg-slate-900 border rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 shadow-inner transition ${
+                      !tablierConfig.articleCode
+                        ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                        : 'border-amber-500/40 text-amber-200 focus:ring-amber-500'
+                    }`}
                   >
-                    {articlesTablier.length === 0 ? (
-                      <option value="">(Aucune lame tablier dans la base)</option>
-                    ) : (
-                      articlesTablier.map(a => (
-                        <option key={a.code_art} value={a.code_art}>
-                          {a.designation}
-                        </option>
-                      ))
-                    )}
+                    <option value="">-- Choisir la Lame Tablier (Obligatoire) * --</option>
+                    {articlesTablier.map(a => (
+                      <option key={a.code_art} value={a.code_art}>
+                        {a.designation}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -4098,17 +4232,18 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                         });
                       }
                     }}
-                    className="w-full bg-slate-900 border border-emerald-500/40 disabled:opacity-40 rounded-lg px-2 py-1.5 text-xs text-emerald-200 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-inner"
+                    className={`w-full bg-slate-900 border disabled:opacity-40 rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 shadow-inner transition ${
+                      tablierConfig.avecLameFinale && !tablierConfig.lfArticleCode
+                        ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                        : 'border-emerald-500/40 text-emerald-200 focus:ring-emerald-500'
+                    }`}
                   >
-                    {articlesLameFinale.length === 0 ? (
-                      <option value="">(Aucune lame finale dans la base)</option>
-                    ) : (
-                      articlesLameFinale.map(a => (
-                        <option key={a.code_art} value={a.code_art}>
-                          {a.designation}
-                        </option>
-                      ))
-                    )}
+                    <option value="">-- Choisir la Lame Finale (Obligatoire si active) * --</option>
+                    {articlesLameFinale.map(a => (
+                      <option key={a.code_art} value={a.code_art}>
+                        {a.designation}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -4158,17 +4293,18 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                         });
                       }
                     }}
-                    className="w-full bg-slate-900 border border-sky-500/40 disabled:opacity-40 rounded-lg px-2 py-1.5 text-xs text-sky-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-inner"
+                    className={`w-full bg-slate-900 border disabled:opacity-40 rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 shadow-inner transition ${
+                      tablierConfig.typeFabrication === 'VOLET_COMPLET' && !tablierConfig.glArticleCode
+                        ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                        : 'border-sky-500/40 text-sky-200 focus:ring-sky-500'
+                    }`}
                   >
-                    {articlesCoulisses.length === 0 ? (
-                      <option value="">(Aucune coulisse dans la base)</option>
-                    ) : (
-                      articlesCoulisses.map(a => (
-                        <option key={a.code_art} value={a.code_art}>
-                          {a.designation}
-                        </option>
-                      ))
-                    )}
+                    <option value="">-- Choisir les Coulisses (Obligatoire pour volet complet) * --</option>
+                    {articlesCoulisses.map(a => (
+                      <option key={a.code_art} value={a.code_art}>
+                        {a.designation}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -4531,7 +4667,7 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                   {/* 1. MAILLE MSTQ */}
                   <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col justify-between space-y-1">
                     <label className="block text-[11px] font-bold text-slate-300">
-                      <span>Maille MSTQ</span>
+                      <span>Maille MSTQ *</span>
                     </label>
                     <select
                       value={mstqConfig.mailleArticleCode}
@@ -4544,11 +4680,14 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                           mailleArticleDesignation: found?.designation || code
                         }));
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      className={`w-full bg-slate-900 border rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:ring-1 transition ${
+                        !mstqConfig.mailleArticleCode && mstqConfig.typeFabrication !== 'PROFILES_SEULS'
+                          ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                          : 'border-slate-700 text-slate-100 focus:ring-amber-500'
+                      }`}
                     >
-                      {articlesMailleMSTQ.length === 0 ? (
-                        <option value="">(Aucune maille MSTQ dans la base)</option>
-                      ) : articlesMailleMSTQ.map(art => (
+                      <option value="">-- Choisir la Maille (Obligatoire) * --</option>
+                      {articlesMailleMSTQ.map(art => (
                         <option key={art.code_art} value={art.code_art}>
                           {art.designation}
                         </option>
@@ -4559,7 +4698,7 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                   {/* 2. CADRE MSTQ */}
                   <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col justify-between space-y-1">
                     <label className="block text-[11px] font-bold text-slate-300">
-                      <span>Cadre MSTQ</span>
+                      <span>Cadre MSTQ *</span>
                     </label>
                     <select
                       disabled={mstqConfig.typeFabrication === 'SEMI_FINI_MAILLE'}
@@ -4573,11 +4712,14 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                           cadreArticleDesignation: found?.designation || code
                         }));
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 disabled:opacity-40 rounded px-2 py-1 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      className={`w-full bg-slate-900 border disabled:opacity-40 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:ring-1 transition ${
+                        !mstqConfig.cadreArticleCode && mstqConfig.typeFabrication !== 'SEMI_FINI_MAILLE'
+                          ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                          : 'border-slate-700 text-slate-100 focus:ring-amber-500'
+                      }`}
                     >
-                      {articlesCadreMSTQ.length === 0 ? (
-                        <option value="">(Aucun cadre MSTQ dans la base)</option>
-                      ) : articlesCadreMSTQ.map(art => (
+                      <option value="">-- Choisir le Cadre (Obligatoire) * --</option>
+                      {articlesCadreMSTQ.map(art => (
                         <option key={art.code_art} value={art.code_art}>
                           {art.designation}
                         </option>
@@ -4588,7 +4730,7 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                   {/* 3. BARRE COULISSE MSTQ */}
                   <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 flex flex-col justify-between space-y-1">
                     <label className="block text-[11px] font-bold text-slate-300">
-                      <span>Barre Coulisse MSTQ</span>
+                      <span>Barre Coulisse MSTQ *</span>
                     </label>
                     <select
                       disabled={mstqConfig.typeFabrication === 'SEMI_FINI_MAILLE' || mstqConfig.typeOuverture === 'FIXE'}
@@ -4602,11 +4744,14 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                           coulisseArticleDesignation: found?.designation || code
                         }));
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 disabled:opacity-40 rounded px-2 py-1 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      className={`w-full bg-slate-900 border disabled:opacity-40 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:ring-1 transition ${
+                        !mstqConfig.coulisseArticleCode && mstqConfig.typeFabrication !== 'SEMI_FINI_MAILLE' && mstqConfig.typeOuverture !== 'FIXE'
+                          ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                          : 'border-slate-700 text-slate-100 focus:ring-amber-500'
+                      }`}
                     >
-                      {articlesCoulisseMSTQ.length === 0 ? (
-                        <option value="">(Aucune coulisse MSTQ dans la base)</option>
-                      ) : articlesCoulisseMSTQ.map(art => (
+                      <option value="">-- Choisir la Coulisse (Obligatoire) * --</option>
+                      {articlesCoulisseMSTQ.map(art => (
                         <option key={art.code_art} value={art.code_art}>
                           {art.designation}
                         </option>
@@ -4799,11 +4944,14 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                         isDirty: false
                       }));
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className={`w-full bg-slate-950 border rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 transition ${
+                      !precadreConfig.articleCode
+                        ? 'border-amber-500 text-amber-300 ring-2 ring-amber-500/20 bg-amber-950/20'
+                        : 'border-slate-700 text-slate-100 focus:ring-amber-500'
+                    }`}
                   >
-                    {articlesPrecadre.length === 0 ? (
-                      <option value="">(Aucun précadre dans la base d'articles)</option>
-                    ) : articlesPrecadre.map(a => (
+                    <option value="">-- Choisir le Profilé Précadre (Obligatoire) * --</option>
+                    {articlesPrecadre.map(a => (
                       <option key={a.code_art} value={a.code_art}>{a.designation}</option>
                     ))}
                   </select>
@@ -5323,7 +5471,13 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
               <div className="md:col-span-3">
                 <button
                   type="submit"
-                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer"
+                  disabled={!canAjouterLigne}
+                  title={!canAjouterLigne ? `Champs obligatoires manquants : ${champsManquants.join(', ')}` : undefined}
+                  className={`w-full py-2 font-black rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-md transition cursor-pointer ${
+                    canAjouterLigne
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-amber-500/20 active:scale-95'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-60'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>
@@ -5398,12 +5552,28 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
               <div className="md:col-span-2">
                 <button
                   type="submit"
-                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 transition active:scale-95 cursor-pointer"
+                  disabled={!canAjouterLigne}
+                  title={!canAjouterLigne ? `Champs obligatoires manquants : ${champsManquants.join(', ')}` : undefined}
+                  className={`w-full py-2 font-black rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-md transition cursor-pointer ${
+                    canAjouterLigne
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-amber-500/20 active:scale-95'
+                      : 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-60'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>Ajouter</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Bandeau d'aide si champs obligatoires manquants */}
+          {!canAjouterLigne && (
+            <div className="text-xs bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3.5 py-2 rounded-xl flex items-center gap-2.5 animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                <strong>Champs obligatoires à renseigner pour valider :</strong> {champsManquants.join(' • ')}
+              </span>
             </div>
           )}
         </form>

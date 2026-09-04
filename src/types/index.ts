@@ -330,7 +330,7 @@ export interface ModeleMoustiquaireConfig {
 // ============================================================================
 
 /** État d'avancement d'un Ordre de Fabrication */
-export type StatutOF = 'EMIS' | 'RETOUR_EN_ATTENTE' | 'CLOTURE' | 'LIVRE';
+export type StatutOF = 'EMIS' | 'RETOUR_EN_ATTENTE' | 'EN_COURS' | 'CLOTURE' | 'LIVRE';
 
 /**
  * Ligne de retour opérateur pour une barre/chute utilisée dans l'OF.

@@ -34,11 +34,13 @@ function sendJson(res: any, data: any, status = 200) {
 export function sqlitePlugin(): Plugin {
   const handleApi = (server: ViteDevServer) => {
     server.middlewares.use(async (req, res, next) => {
-      const url = req.url || '';
+      const rawUrl = req.url || '';
+      const [pathname] = rawUrl.split('?');
+      const url = pathname.replace(/\/+$/, '') || '/';
       const method = req.method || 'GET';
 
       // Intercepter uniquement les routes /api/*
-      if (!url.startsWith('/api/')) {
+      if (!url.startsWith('/api')) {
         return next();
       }
 

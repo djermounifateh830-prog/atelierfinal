@@ -15,7 +15,16 @@
     background: white !important;
     color: black !important;
   }
-  header, nav, button, footer, .print\\:hidden {
+  body.of-modal-open #root {
+    display: none !important;
+  }
+  body.of-modal-open {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+  header, nav, button, footer, .print\:hidden {
     display: none !important;
   }
   .page-break {

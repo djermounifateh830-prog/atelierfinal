@@ -76,45 +76,59 @@ export class StorageService {
     clientCodifications: ClientCodification[];
     fichesTransfert: FicheTransfert[];
   }> {
-    try {
-      const startTime = performance.now();
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-      const res = await fetch('/api/data', { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          const d = json.data;
-          const elapsedMs = Math.round(performance.now() - startTime);
-          console.log('📦 [SQLite] Connecté — Source unique de vérité.');
-          logger.sqlite('Init DB', `Connecté en ${elapsedMs}ms — ${d.articles?.length || 0} articles, ${Object.keys(d.chutesBarres || {}).length} familles de chutes, ${d.dossiers?.length || 0} dossiers, ${d.suivisOF?.length || 0} suivis OF, ${d.clientCodifications?.length || 0} codifications clients, ${d.fichesTransfert?.length || 0} fiches de transfert.`, {
-            articlesCount: d.articles?.length || 0,
-            chutesFamiliesCount: Object.keys(d.chutesBarres || {}).length,
-            dossiersCount: d.dossiers?.length || 0,
-            suivisOFCount: d.suivisOF?.length || 0,
-            mouvementsCount: d.mouvements?.length || 0,
-            codificationsCount: d.clientCodifications?.length || 0,
-            fichesTransfertCount: d.fichesTransfert?.length || 0
-          });
+    const maxRetries = 3;
+    let lastError: any = null;
 
-          return {
-            articles: Array.isArray(d.articles) ? d.articles : [],
-            chutesBarres: (d.chutesBarres && typeof d.chutesBarres === 'object') ? d.chutesBarres : {},
-            chutesMaille: Array.isArray(d.chutesMaille) ? d.chutesMaille : [],
-            mapping: (d.mapping && typeof d.mapping === 'object') ? d.mapping : {},
-            dossiers: Array.isArray(d.dossiers) ? d.dossiers : [],
-            suivisOF: Array.isArray(d.suivisOF) ? d.suivisOF : [],
-            mouvements: Array.isArray(d.mouvements) ? d.mouvements : [],
-            clientCodifications: Array.isArray(d.clientCodifications) && d.clientCodifications.length > 0 ? d.clientCodifications : INITIAL_CLIENT_CODIFICATIONS,
-            fichesTransfert: Array.isArray(d.fichesTransfert) ? d.fichesTransfert : []
-          };
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const startTime = performance.now();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort(new Error('Délai d\'attente dépassé pour la connexion SQLite (15s)'));
+        }, 15000);
+        const res = await fetch('/api/data', { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const d = json.data;
+            const elapsedMs = Math.round(performance.now() - startTime);
+            console.log('📦 [SQLite] Connecté — Source unique de vérité.');
+            logger.sqlite('Init DB', `Connecté en ${elapsedMs}ms — ${d.articles?.length || 0} articles, ${Object.keys(d.chutesBarres || {}).length} familles de chutes, ${d.dossiers?.length || 0} dossiers, ${d.suivisOF?.length || 0} suivis OF, ${d.clientCodifications?.length || 0} codifications clients, ${d.fichesTransfert?.length || 0} fiches de transfert.`, {
+              articlesCount: d.articles?.length || 0,
+              chutesFamiliesCount: Object.keys(d.chutesBarres || {}).length,
+              dossiersCount: d.dossiers?.length || 0,
+              suivisOFCount: d.suivisOF?.length || 0,
+              mouvementsCount: d.mouvements?.length || 0,
+              codificationsCount: d.clientCodifications?.length || 0,
+              fichesTransfertCount: d.fichesTransfert?.length || 0
+            });
+
+            return {
+              articles: Array.isArray(d.articles) ? d.articles : [],
+              chutesBarres: (d.chutesBarres && typeof d.chutesBarres === 'object') ? d.chutesBarres : {},
+              chutesMaille: Array.isArray(d.chutesMaille) ? d.chutesMaille : [],
+              mapping: (d.mapping && typeof d.mapping === 'object') ? d.mapping : {},
+              dossiers: Array.isArray(d.dossiers) ? d.dossiers : [],
+              suivisOF: Array.isArray(d.suivisOF) ? d.suivisOF : [],
+              mouvements: Array.isArray(d.mouvements) ? d.mouvements : [],
+              clientCodifications: Array.isArray(d.clientCodifications) && d.clientCodifications.length > 0 ? d.clientCodifications : INITIAL_CLIENT_CODIFICATIONS,
+              fichesTransfert: Array.isArray(d.fichesTransfert) ? d.fichesTransfert : []
+            };
+          }
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[StorageService] Tentative ${attempt}/${maxRetries} pour connexion SQLite:`, err?.message || err);
+        if (attempt < maxRetries) {
+          await new Promise(r => setTimeout(r, 800 * attempt));
         }
       }
-    } catch (err: any) {
-      console.error('[StorageService] Erreur connexion SQLite:', err);
-      logger.warn('Init DB', 'Serveur SQLite non joignable ou en attente d\'initialisation.', { error: err.message });
     }
+
+    console.error('[StorageService] Erreur connexion SQLite après tentatives:', lastError);
+    logger.warn('Init DB', 'Serveur SQLite non joignable ou en attente d\'initialisation.', { error: lastError?.message });
     return {
       articles: INITIAL_ARTICLES,
       chutesBarres: INITIAL_CHUTES_STOCK,

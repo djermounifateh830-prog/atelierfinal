@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   ResultatOptimisation, Article, PieceCoupee, BesoinMoustiquaire, 
   ChuteMaille, SuiviOF, LigneRetourOF, FamilleProduit,
@@ -360,6 +361,17 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
   const [ofEmis, setOfEmis] = useState<boolean>(false);
   const [isEmitting, setIsEmitting] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('of-modal-open');
+    } else {
+      document.body.classList.remove('of-modal-open');
+    }
+    return () => {
+      document.body.classList.remove('of-modal-open');
+    };
+  }, [isOpen]);
+
   // Calcul et optimisation des attributions chutes pour la maille moustiquaire
   const resultatsMaille = useMemo(() => {
     const mstqToile = (lignesMoustiquaires || []).filter(m => m.typeFabrication !== 'PROFILES_SEULS');
@@ -611,58 +623,62 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
 
     const barresHTML = sec.groupesBarresNeuves.map(g => `
       <tr>
-        <td style="text-align:center;font-weight:900;color:#047857;font-size:15px;background:#f0fdf4;padding:3px 4px;vertical-align:middle;">${g.quantite}</td>
-        <td colspan="2" style="padding:0;vertical-align:top;border-right:1px solid #64748b;">
-          <table style="width:100%;border-collapse:collapse;margin:0;">
+        <td style="width:7%;text-align:center;font-weight:900;color:#047857;font-size:14px;background:#f0fdf4;padding:3px 4px;vertical-align:middle;">${g.quantite}</td>
+        <td colspan="2" style="width:53%;padding:0;vertical-align:top;border-right:1px solid #64748b;">
+          <table style="width:100%;border-collapse:collapse;margin:0;table-layout:fixed;">
             <tbody>
               ${g.piecesInfo.map((p, pIdx) => `
                 <tr style="${pIdx > 0 ? 'border-top:1px solid #cbd5e1;' : ''}">
-                  <td style="width:190px;font-family:Consolas,monospace;font-size:11px;padding:3px 6px;border:none;border-right:1px solid #cbd5e1;vertical-align:middle;">
-                    <div style="display:flex;align-items:center;gap:4px;">
-                      <strong style="font-size:12px;color:#0f172a;background:#fef3c7;padding:2px 6px;border-radius:3px;border:1px solid #fde68a;">${p.repere}</strong>
-                      ${p.cmdTag ? `<span style="font-size:10px;background:#e2e8f0;color:#334155;padding:1px 4px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
+                  <td style="width:49%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border:none;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                    <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+                      <strong style="font-size:11px;color:#0f172a;background:#fef3c7;padding:1px 5px;border-radius:3px;border:1px solid #fde68a;">${p.repere}</strong>
+                      ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
                     </div>
                   </td>
-                  <td style="font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#0f172a;padding:3px 6px;border:none;vertical-align:middle;text-align:center;">
-                    <strong style="font-size:13px;color:#0f172a;font-family:Consolas,monospace;">${p.longueur}</strong>
+                  <td style="width:51%;font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#0f172a;padding:3px 5px;border:none;vertical-align:middle;text-align:center;box-sizing:border-box;">
+                    <strong style="font-size:12px;color:#0f172a;font-family:Consolas,monospace;">${p.longueur}</strong>
                   </td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </td>
-        <td style="text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:13px;color:#1e293b;padding:3px 4px;vertical-align:middle;">${Math.round(g.chute)} mm</td>
-        <td style="text-align:center;font-weight:900;font-size:11px;color:${g.statut === 'STOCK' ? '#047857' : g.statut === 'Dechet' ? '#64748b' : '#b91c1c'};padding:3px 4px;vertical-align:middle;">
-          ${g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ À SACRIFIER'}
+        <td style="width:13%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:12px;color:#1e293b;padding:3px 4px;vertical-align:middle;">${Math.round(g.chute)} mm</td>
+        <td style="width:12%;text-align:center;font-weight:900;font-size:10px;color:${g.statut === 'STOCK' ? '#047857' : g.statut === 'Dechet' ? '#64748b' : '#b91c1c'};padding:3px 4px;vertical-align:middle;">
+          ${g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
         </td>
-        <td style="font-size:10px;color:#94a3b8;font-family:Consolas,monospace;padding:3px 4px;vertical-align:middle;">....................</td>
+        <td style="width:15%;padding:3px 4px;vertical-align:middle;box-sizing:border-box;">
+          <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
+        </td>
       </tr>`).join('');
 
     const chutesHTML = sec.groupesChutesRecup.map(g => `
       <tr>
-        <td style="text-align:center;font-weight:900;color:#1d4ed8;font-size:15px;background:#eff6ff;padding:3px 4px;vertical-align:middle;">${g.quantite}</td>
-        <td style="text-align:center;font-weight:900;font-family:Consolas,monospace;color:#1d4ed8;font-size:13px;background:#eff6ff;padding:3px 4px;vertical-align:middle;">${Math.round(g.support)} mm</td>
-        <td colspan="2" style="padding:0;vertical-align:top;border-right:1px solid #64748b;">
-          <table style="width:100%;border-collapse:collapse;margin:0;">
+        <td style="width:7%;text-align:center;font-weight:900;color:#1d4ed8;font-size:14px;background:#eff6ff;padding:3px 4px;vertical-align:middle;">${g.quantite}</td>
+        <td style="width:14%;text-align:center;font-weight:900;font-family:Consolas,monospace;color:#1d4ed8;font-size:12px;background:#eff6ff;padding:3px 4px;vertical-align:middle;">${Math.round(g.support)} mm</td>
+        <td colspan="2" style="width:49%;padding:0;vertical-align:top;border-right:1px solid #64748b;">
+          <table style="width:100%;border-collapse:collapse;margin:0;table-layout:fixed;">
             <tbody>
               ${g.piecesInfo.map((p, pIdx) => `
                 <tr style="${pIdx > 0 ? 'border-top:1px solid #cbd5e1;' : ''}">
-                  <td style="width:190px;font-family:Consolas,monospace;font-size:11px;padding:3px 6px;border:none;border-right:1px solid #cbd5e1;vertical-align:middle;">
-                    <div style="display:flex;align-items:center;gap:4px;">
-                      <strong style="font-size:12px;color:#0f172a;background:#e0f2fe;padding:2px 6px;border-radius:3px;border:1px solid #bae6fd;">${p.repere}</strong>
-                      ${p.cmdTag ? `<span style="font-size:10px;background:#e2e8f0;color:#334155;padding:1px 4px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
+                  <td style="width:49%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border:none;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                    <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+                      <strong style="font-size:11px;color:#0f172a;background:#e0f2fe;padding:1px 5px;border-radius:3px;border:1px solid #bae6fd;">${p.repere}</strong>
+                      ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
                     </div>
                   </td>
-                  <td style="font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#0f172a;padding:3px 6px;border:none;vertical-align:middle;text-align:center;">
-                    <strong style="font-size:13px;color:#0f172a;font-family:Consolas,monospace;">${p.longueur}</strong>
+                  <td style="width:51%;font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#0f172a;padding:3px 5px;border:none;vertical-align:middle;text-align:center;box-sizing:border-box;">
+                    <strong style="font-size:12px;color:#0f172a;font-family:Consolas,monospace;">${p.longueur}</strong>
                   </td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </td>
-        <td style="text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:13px;color:#1e293b;padding:3px 4px;vertical-align:middle;">${Math.round(g.reste)} mm</td>
-        <td style="font-size:10px;color:#94a3b8;font-family:Consolas,monospace;padding:3px 4px;vertical-align:middle;">....................</td>
+        <td style="width:13%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:12px;color:#1e293b;padding:3px 4px;vertical-align:middle;">${Math.round(g.reste)} mm</td>
+        <td style="width:17%;padding:3px 4px;vertical-align:middle;box-sizing:border-box;">
+          <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
+        </td>
       </tr>`).join('');
 
     return `
@@ -676,14 +692,14 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       <div style="font-size:11px;font-weight:900;margin:4px 0;border-left:3px solid #047857;padding-left:6px;text-transform:uppercase;color:#065f46;">
         COUPES SUR BARRES NEUVES (${sec.resultat.total_barres_neuves} barre(s) — Rendement : ${sec.resultat.taux_rendement}%)
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;">
         <thead><tr style="background:#f8fafc;">
-          <th style="width:40px;text-align:center;font-size:11px;padding:3px 4px;">Qté</th>
-          <th style="width:170px;font-size:11px;padding:3px 4px;">Repère(s) &amp; N° Cmd</th>
-          <th style="font-size:11px;padding:3px 4px;">Longueur(s) de Coupe</th>
-          <th style="width:75px;text-align:center;font-size:11px;padding:3px 4px;">Reste</th>
-          <th style="width:85px;text-align:center;font-size:11px;padding:3px 4px;">Statut</th>
-          <th style="width:120px;font-size:11px;padding:3px 4px;">Nouvelle Chute</th>
+          <th style="width:7%;text-align:center;font-size:11px;padding:3px 4px;">Qté</th>
+          <th style="width:26%;font-size:11px;padding:3px 4px;">Repère(s) &amp; N° Cmd</th>
+          <th style="width:27%;text-align:center;font-size:11px;padding:3px 4px;">Longueur(s) de Coupe</th>
+          <th style="width:13%;text-align:center;font-size:11px;padding:3px 4px;">Reste</th>
+          <th style="width:12%;text-align:center;font-size:11px;padding:3px 4px;">Statut</th>
+          <th style="width:15%;text-align:center;font-size:11px;padding:3px 4px;">Nouvelle Chute</th>
         </tr></thead>
         <tbody>${barresHTML}</tbody>
       </table>` : ''}
@@ -691,14 +707,14 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       <div style="font-size:11px;font-weight:900;margin:4px 0;border-left:3px solid #1d4ed8;padding-left:6px;text-transform:uppercase;color:#1e40af;">
         COUPES SUR CHUTES DU STOCK (${sec.resultat.total_chutes_recyclees} chute(s))
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;">
         <thead><tr style="background:#eff6ff;">
-          <th style="width:40px;text-align:center;font-size:11px;padding:3px 4px;">Qté</th>
-          <th style="width:90px;text-align:center;font-size:11px;padding:3px 4px;">Chute Prévue</th>
-          <th style="width:170px;font-size:11px;padding:3px 4px;">Repère(s) &amp; N° Cmd</th>
-          <th style="font-size:11px;padding:3px 4px;">Longueur(s) de Coupe</th>
-          <th style="width:75px;text-align:center;font-size:11px;padding:3px 4px;">Reste</th>
-          <th style="width:120px;font-size:11px;padding:3px 4px;">Nouvelle Chute</th>
+          <th style="width:7%;text-align:center;font-size:11px;padding:3px 4px;">Qté</th>
+          <th style="width:14%;text-align:center;font-size:11px;padding:3px 4px;">Chute Prévue</th>
+          <th style="width:24%;font-size:11px;padding:3px 4px;">Repère(s) &amp; N° Cmd</th>
+          <th style="width:25%;text-align:center;font-size:11px;padding:3px 4px;">Longueur(s) de Coupe</th>
+          <th style="width:13%;text-align:center;font-size:11px;padding:3px 4px;">Reste</th>
+          <th style="width:17%;text-align:center;font-size:11px;padding:3px 4px;">Nouvelle Chute</th>
         </tr></thead>
         <tbody>${chutesHTML}</tbody>
       </table>` : ''}
@@ -747,18 +763,18 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
         <div style="font-weight:900;font-size:12px;margin:6px 0 4px 0;text-transform:uppercase;color:#78350f;background:#fef3c7;border:1.5px solid #b45309;padding:5px 8px;">
           🕸️ D. Toile Plissée / Maille MSTQ (Débit Toile, Guidage, Plis & Cordes - Matière Première)
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px;border:1.5px solid #64748b;margin-bottom:6px;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;border:1.5px solid #64748b;margin-bottom:6px;table-layout:fixed;">
           <thead>
             <tr style="background:#f1f5f9;font-weight:900;border-bottom:1.5px solid #64748b;">
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:70px;">Repère</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;">Dim. Finie (L×H)</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;">Ouverture</th>
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;background:#fffbeb;">Coupe Fixe Maille</th>
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;">Nb Plis</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;">Guidage & Cordes</th>
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;">Surface</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;">Article</th>
-              <th style="padding:4px;">Source Toile (Chute / Stock)</th>
+              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:8%;">Repère</th>
+              <th style="padding:4px;border-right:1px solid #cbd5e1;width:14%;">Dim. Finie (L×H)</th>
+              <th style="padding:4px;border-right:1px solid #cbd5e1;width:11%;">Ouverture</th>
+              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;background:#fffbeb;width:13%;">Coupe Fixe Maille</th>
+              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:9%;">Nb Plis</th>
+              <th style="padding:4px;border-right:1px solid #cbd5e1;width:15%;">Guidage & Cordes</th>
+              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:8%;">Surface</th>
+              <th style="padding:4px;border-right:1px solid #cbd5e1;width:10%;">Article</th>
+              <th style="padding:4px;width:12%;">Source Toile (Chute / Stock)</th>
             </tr>
           </thead>
           <tbody>
@@ -801,7 +817,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
   <meta charset="utf-8">
   <title>Ordre de Fabrication — ${cmdAffichee} — ${clientAffiche}</title>
   <style>
-    @page { size: A4 portrait; margin: 6mm 6mm 6mm 6mm; }
+    @page { size: A4 portrait; margin: 8mm 6mm 8mm 6mm; }
     body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; background: #fff; font-size: 11px; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; border-bottom:2px solid #000; padding-bottom:4px; }
     .header-left h1 { font-size:15px; font-weight:900; margin:0 0 2px 0; text-transform:uppercase; color:#0f172a; }
@@ -811,8 +827,8 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     .client-info-bar { display:flex; justify-content:space-between; background:#f1f5f9; padding:5px 8px; border:1px solid #94a3b8; font-size:11px; margin-bottom:8px; font-weight:bold; }
     .page-break { page-break-before: always; break-before: page; margin-top: 10px; }
     .famille-header { background: #0f172a; color: #fff; padding: 5px 10px; font-size: 13px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-    table { width:100%; border-collapse:collapse; margin-bottom:8px; }
-    th, td { border:1px solid #64748b; padding:4px 6px; text-align:left; vertical-align:middle; font-size: 11px; }
+    table { width:100%; border-collapse:collapse; margin-bottom:8px; table-layout:fixed; }
+    th, td { border:1px solid #64748b; padding:4px 5px; text-align:left; vertical-align:middle; font-size: 11px; box-sizing:border-box; word-break:break-word; overflow-wrap:break-word; }
     th { background:#f1f5f9; font-weight:900; font-size:11px; text-transform:uppercase; color:#0f172a; }
     .global-footer-box { border:2px solid #000; padding:6px 10px; display:flex; justify-content:space-around; font-size:11px; font-weight:900; margin-top:8px; background:#f8fafc; page-break-inside:avoid; flex-wrap:wrap; gap:6px; }
   </style>
@@ -842,40 +858,40 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
   </div>
 
   <div style="font-weight:900;font-size:12px;margin:4px 0;text-transform:uppercase;color:#047857;">A. Barres Neuves à sortir du Magasin :</div>
-  <table>
+  <table style="table-layout:fixed;width:100%;">
     <thead><tr>
-      <th style="width:95px;">Famille</th>
-      <th>Désignation Profilé</th>
-      <th style="width:90px;text-align:center;">Longueur</th>
-      <th style="width:105px;text-align:center;">Qté Barres</th>
-      <th style="width:90px;text-align:center;">Métrage (m)</th>
-      <th style="width:85px;text-align:center;">Pointage</th>
+      <th style="width:14%;">Famille</th>
+      <th style="width:36%;">Désignation Profilé</th>
+      <th style="width:13%;text-align:center;">Longueur</th>
+      <th style="width:13%;text-align:center;">Qté Barres</th>
+      <th style="width:12%;text-align:center;">Métrage (m)</th>
+      <th style="width:12%;text-align:center;">Pointage</th>
     </tr></thead>
     <tbody>${matieresNeuvesHTML}</tbody>
   </table>
 
   <div style="font-weight:900;font-size:12px;margin:8px 0 4px 0;text-transform:uppercase;color:#1d4ed8;">B. Chutes Récupérées à Déstocker des Casiers :</div>
-  <table>
+  <table style="table-layout:fixed;width:100%;">
     <thead><tr>
-      <th style="width:95px;">Famille</th>
-      <th>Désignation Profilé</th>
-      <th style="width:110px;text-align:center;">Chute à Sortir</th>
-      <th style="width:55px;text-align:center;">Qté</th>
-      <th style="width:130px;text-align:center;">Reste Estimé</th>
-      <th style="width:85px;text-align:center;">Pointage</th>
+      <th style="width:14%;">Famille</th>
+      <th style="width:36%;">Désignation Profilé</th>
+      <th style="width:15%;text-align:center;">Chute à Sortir</th>
+      <th style="width:9%;text-align:center;">Qté</th>
+      <th style="width:14%;text-align:center;">Reste Estimé</th>
+      <th style="width:12%;text-align:center;">Pointage</th>
     </tr></thead>
     <tbody>${chutesDestoquerHTML}</tbody>
   </table>
 
   <div style="font-weight:900;font-size:12px;margin:8px 0 4px 0;text-transform:uppercase;color:#92400e;">C. Accessoires &amp; Joues de Caisson à Préparer (Articles Stockés non coupés) :</div>
-  <table>
+  <table style="table-layout:fixed;width:100%;">
     <thead><tr>
-      <th style="width:95px;">Famille</th>
-      <th style="width:90px;">Code Art</th>
-      <th>Désignation Article</th>
-      <th>Règle / Affectation</th>
-      <th style="width:110px;text-align:center;">Qté Requise</th>
-      <th style="width:85px;text-align:center;">Pointage</th>
+      <th style="width:14%;">Famille</th>
+      <th style="width:14%;">Code Art</th>
+      <th style="width:34%;">Désignation Article</th>
+      <th style="width:16%;">Règle / Affectation</th>
+      <th style="width:11%;text-align:center;">Qté Requise</th>
+      <th style="width:11%;text-align:center;">Pointage</th>
     </tr></thead>
     <tbody>${accessoiresHTML}</tbody>
   </table>
@@ -1217,42 +1233,42 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
               </span>
             </div>
             <div className="border-2 border-slate-400 overflow-hidden rounded">
-              <table className="w-full text-left text-sm border-collapse">
+              <table className="w-full text-left text-sm border-collapse table-fixed">
                 <thead className="bg-slate-100 text-slate-900 font-black border-b-2 border-slate-400 text-xs sm:text-sm">
                   <tr>
-                    <th className="py-1.5 px-2 text-center w-12 border-r border-slate-300">Qté</th>
-                    <th className="py-1.5 px-3 border-r border-slate-300 w-52">Repère(s) &amp; N° Cmd</th>
-                    <th className="py-1.5 px-3 border-r border-slate-300">Longueur(s) de Coupe</th>
-                    <th className="py-1.5 px-2 text-center w-24 border-r border-slate-300">Reste</th>
-                    <th className="py-1.5 px-2 text-center w-28 border-r border-slate-300">Statut</th>
-                    <th className="py-1.5 px-3">Nouvelle Chute</th>
+                    <th className="py-1.5 px-2 text-center w-[7%] border-r border-slate-300">Qté</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[26%]">Repère(s) &amp; N° Cmd</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[27%] text-center">Longueur(s) de Coupe</th>
+                    <th className="py-1.5 px-2 text-center w-[13%] border-r border-slate-300">Reste</th>
+                    <th className="py-1.5 px-2 text-center w-[12%] border-r border-slate-300">Statut</th>
+                    <th className="py-1.5 px-2 text-center w-[15%]">Nouvelle Chute</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-300 bg-white">
                   {sec.groupesBarresNeuves.map((g, i) => (
                     <tr key={i} className="hover:bg-slate-50">
-                      <td className="py-2 px-2 text-center font-black text-base sm:text-lg text-emerald-800 border-r border-slate-300 font-mono bg-emerald-50/50">
+                      <td className="py-2 px-1 text-center font-black text-sm sm:text-base text-emerald-800 border-r border-slate-300 font-mono bg-emerald-50/50">
                         {g.quantite}
                       </td>
                       <td colSpan={2} className="p-0 border-r border-slate-300">
-                        <table className="w-full border-collapse">
+                        <table className="w-full border-collapse table-fixed">
                           <tbody className="divide-y divide-slate-200">
                             {g.piecesInfo.map((p, pIdx) => (
                               <tr key={pIdx}>
-                                <td className="py-2 px-3 w-52 border-r border-slate-300 font-mono">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-black text-xs sm:text-sm text-slate-950 bg-amber-100 px-2.5 py-0.5 rounded border border-amber-300">
+                                <td className="py-1.5 px-2 w-[49%] border-r border-slate-300 font-mono">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-black text-xs text-slate-950 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
                                       {p.repere}
                                     </span>
                                     {p.cmdTag && (
-                                      <span className="text-xs bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-300 font-bold">
+                                      <span className="text-[10px] bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold">
                                         Cmd {p.cmdTag}
                                       </span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="py-2 px-3 font-mono text-center">
-                                  <span className="font-mono font-black text-sm sm:text-base text-slate-950 bg-slate-100 px-3 py-1 rounded border border-slate-300 inline-block shadow-xs">
+                                <td className="py-1.5 px-2 w-[51%] font-mono text-center">
+                                  <span className="font-mono font-black text-xs sm:text-sm text-slate-950 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-300 inline-block shadow-xs">
                                     {p.longueur}
                                   </span>
                                 </td>
@@ -1261,21 +1277,23 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                           </tbody>
                         </table>
                       </td>
-                      <td className="py-2 px-2 text-center font-mono font-black text-sm sm:text-base text-slate-900 border-r border-slate-300">
+                      <td className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-slate-900 border-r border-slate-300">
                         {Math.round(g.chute)} mm
                       </td>
-                      <td className="py-2 px-2 text-center font-bold text-xs sm:text-sm border-r border-slate-300">
-                        <span className={`px-2 py-0.5 rounded font-black ${
+                      <td className="py-2 px-1 text-center font-bold text-xs border-r border-slate-300">
+                        <span className={`px-1.5 py-0.5 rounded font-black text-[11px] ${
                           g.statut === 'STOCK'
                             ? 'bg-emerald-100 text-emerald-800'
                             : g.statut === 'Dechet'
                             ? 'bg-slate-100 text-slate-600'
                             : 'bg-rose-100 text-rose-800 border border-rose-300'
                         }`}>
-                          {g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ À SACRIFIER'}
+                          {g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
                         </span>
                       </td>
-                      <td className="py-2 px-3 text-xs sm:text-sm text-slate-400 italic font-mono">................................</td>
+                      <td className="py-1 px-2 text-center align-middle">
+                        <div className="border-b border-dashed border-slate-400 h-5 my-0.5 mx-1 flex items-end justify-center text-[10px] text-slate-400 italic">cote réelle mm</div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1292,45 +1310,45 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
               <span className="text-sky-900 font-black">COUPES SUR CHUTES DU STOCK ({sec.resultat.total_chutes_recyclees} chute(s))</span>
             </div>
             <div className="border-2 border-slate-400 overflow-hidden rounded">
-              <table className="w-full text-left text-sm border-collapse">
+              <table className="w-full text-left text-sm border-collapse table-fixed">
                 <thead className="bg-sky-50 text-slate-900 font-black border-b-2 border-slate-400 text-xs sm:text-sm">
                   <tr>
-                    <th className="py-1.5 px-2 text-center w-12 border-r border-slate-300">Qté</th>
-                    <th className="py-1.5 px-2 text-center w-28 border-r border-slate-300 bg-sky-100 text-sky-950">Chute Prévue</th>
-                    <th className="py-1.5 px-3 border-r border-slate-300 w-52">Repère(s) &amp; N° Cmd</th>
-                    <th className="py-1.5 px-3 border-r border-slate-300">Longueur(s) de Coupe</th>
-                    <th className="py-1.5 px-2 text-center w-24 border-r border-slate-300">Reste</th>
-                    <th className="py-1.5 px-3">Nouvelle Chute</th>
+                    <th className="py-1.5 px-2 text-center w-[7%] border-r border-slate-300">Qté</th>
+                    <th className="py-1.5 px-2 text-center w-[14%] border-r border-slate-300 bg-sky-100 text-sky-950">Chute Prévue</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[24%]">Repère(s) &amp; N° Cmd</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[25%] text-center">Longueur(s) de Coupe</th>
+                    <th className="py-1.5 px-2 text-center w-[13%] border-r border-slate-300">Reste</th>
+                    <th className="py-1.5 px-2 text-center w-[17%]">Nouvelle Chute</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-300 bg-white">
                   {sec.groupesChutesRecup.map((g, i) => (
                     <tr key={i} className="hover:bg-sky-50/30">
-                      <td className="py-2 px-2 text-center font-black text-base sm:text-lg text-sky-800 border-r border-slate-300 font-mono bg-sky-50/50">
+                      <td className="py-2 px-1 text-center font-black text-sm sm:text-base text-sky-800 border-r border-slate-300 font-mono bg-sky-50/50">
                         {g.quantite}
                       </td>
-                      <td className="py-2 px-2 text-center font-mono font-black text-sm sm:text-base text-sky-950 border-r border-slate-300 bg-sky-100/50">
+                      <td className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-sky-950 border-r border-slate-300 bg-sky-100/50">
                         {Math.round(g.support)} mm
                       </td>
                       <td colSpan={2} className="p-0 border-r border-slate-300">
-                        <table className="w-full border-collapse">
+                        <table className="w-full border-collapse table-fixed">
                           <tbody className="divide-y divide-slate-200">
                             {g.piecesInfo.map((p, pIdx) => (
                               <tr key={pIdx}>
-                                <td className="py-2 px-3 w-52 border-r border-slate-300 font-mono">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-black text-xs sm:text-sm text-sky-950 bg-sky-100 px-2.5 py-0.5 rounded border border-sky-300">
+                                <td className="py-1.5 px-2 w-[49%] border-r border-slate-300 font-mono">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-black text-xs text-sky-950 bg-sky-100 px-2 py-0.5 rounded border border-sky-300">
                                       {p.repere}
                                     </span>
                                     {p.cmdTag && (
-                                      <span className="text-xs bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-300 font-bold">
+                                      <span className="text-[10px] bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold">
                                         Cmd {p.cmdTag}
                                       </span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="py-2 px-3 font-mono text-center">
-                                  <span className="font-mono font-black text-sm sm:text-base text-slate-950 bg-sky-50 px-3 py-1 rounded border border-sky-300 inline-block shadow-xs">
+                                <td className="py-1.5 px-2 w-[51%] font-mono text-center">
+                                  <span className="font-mono font-black text-xs sm:text-sm text-slate-950 bg-sky-50 px-2.5 py-0.5 rounded border border-sky-300 inline-block shadow-xs">
                                     {p.longueur}
                                   </span>
                                 </td>
@@ -1339,10 +1357,12 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                           </tbody>
                         </table>
                       </td>
-                      <td className="py-2 px-2 text-center font-mono font-black text-sm sm:text-base text-slate-900 border-r border-slate-300">
+                      <td className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-slate-900 border-r border-slate-300">
                         {Math.round(g.reste)} mm
                       </td>
-                      <td className="py-2 px-3 text-xs sm:text-sm text-slate-400 italic font-mono">................................</td>
+                      <td className="py-1 px-2 text-center align-middle">
+                        <div className="border-b border-dashed border-slate-400 h-5 my-0.5 mx-1 flex items-end justify-center text-[10px] text-slate-400 italic">cote réelle mm</div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1354,14 +1374,16 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     );
   };
 
-  return (
-    <div id="ordre-fabrication-modal-overlay" className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto print:p-0 print:m-0 print:bg-transparent print:backdrop-blur-none">
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div id="ordre-fabrication-modal-overlay" className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto print:p-0 print:m-0 print:bg-white print:backdrop-blur-none print:overflow-visible">
       {/* Print Specific CSS Injector */}
       <style>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm 8mm 8mm 8mm;
+            margin: 8mm 6mm 8mm 6mm;
           }
           html, body {
             height: auto !important;
@@ -1372,27 +1394,28 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
             color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            font-size: 13px !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          /* Hide non-print UI */
-          body > * {
-            visibility: hidden;
-          }
-          #ordre-fabrication-modal-overlay,
-          #ordre-fabrication-modal-overlay * {
-            visibility: visible;
+          /* Strictly eliminate root app from print flow */
+          #root {
+            display: none !important;
           }
           #ordre-fabrication-modal-overlay {
             position: static !important;
             display: block !important;
             inset: auto !important;
             width: 100% !important;
+            max-width: 100% !important;
             height: auto !important;
             max-height: none !important;
             overflow: visible !important;
-            background: transparent !important;
+            background: #ffffff !important;
             padding: 0 !important;
             margin: 0 !important;
+            box-shadow: none !important;
           }
           #ordre-fabrication-card {
             border: none !important;
@@ -1406,6 +1429,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
+            display: block !important;
           }
           .no-print {
             display: none !important;
@@ -1413,28 +1437,39 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
           .of-page-break {
             page-break-before: always !important;
             break-before: page !important;
-            margin-top: 15px !important;
-            padding-top: 10px !important;
+            margin-top: 0 !important;
+            padding-top: 8px !important;
           }
           .of-avoid-break {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
           }
           table {
-            page-break-inside: auto;
+            width: 100% !important;
+            table-layout: fixed !important;
             border-collapse: collapse !important;
+            page-break-inside: auto;
+          }
+          thead {
+            display: table-header-group !important;
+          }
+          tbody {
+            display: table-row-group !important;
           }
           tr {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
           }
           th, td {
-            border-color: #475569 !important;
+            border-color: #64748b !important;
+            box-sizing: border-box !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
           }
         }
       `}</style>
 
-      <div id="ordre-fabrication-card" className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-5xl max-h-[96vh] flex flex-col shadow-2xl text-slate-100 overflow-hidden print:bg-white print:text-black print:max-w-none print:max-h-none print:rounded-none">
+      <div id="ordre-fabrication-card" className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-5xl max-h-[96vh] flex flex-col shadow-2xl text-slate-100 overflow-hidden print:bg-white print:text-black print:max-w-none print:max-h-none print:rounded-none print:block">
         
         {/* Top Control Bar (Hidden when printing) */}
         <div className="no-print px-5 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
@@ -1549,22 +1584,22 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                   }
                   return (
                     <div className="border-2 border-slate-400 overflow-hidden rounded">
-                      <table className="w-full text-left text-sm border-collapse">
+                      <table className="w-full text-left text-sm border-collapse table-fixed">
                         <thead className="bg-slate-100 text-slate-900 font-black border-b-2 border-slate-400 text-xs sm:text-sm">
                           <tr>
-                            <th className="py-1.5 px-3 border-r border-slate-300 w-28">Famille</th>
-                            <th className="py-1.5 px-3 border-r border-slate-300">Désignation Profilé</th>
-                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-28">Longueur</th>
-                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-32 bg-emerald-100 text-emerald-950 font-black">Qté Barres</th>
-                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-28">Métrage (m)</th>
-                            <th className="py-1.5 px-2 text-center w-28">Pointage</th>
+                            <th className="py-1.5 px-2 border-r border-slate-300 w-[14%]">Famille</th>
+                            <th className="py-1.5 px-2 border-r border-slate-300 w-[36%]">Désignation Profilé</th>
+                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-[13%]">Longueur</th>
+                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-[13%] bg-emerald-100 text-emerald-950 font-black">Qté Barres</th>
+                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-[12%]">Métrage (m)</th>
+                            <th className="py-1.5 px-2 text-center w-[12%]">Pointage</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-300 bg-white font-mono text-sm">
                           {matieresNeuves.map((m, idx) => (
                             <tr key={idx} className="hover:bg-slate-50">
-                              <td className="py-2 px-3 font-sans font-black text-slate-900 border-r border-slate-300">
-                                <span className={`px-2 py-0.5 rounded text-xs font-black ${
+                              <td className="py-2 px-2 font-sans font-black text-slate-900 border-r border-slate-300">
+                                <span className={`px-1.5 py-0.5 rounded text-[11px] font-black inline-block ${
                                   m.famille === 'CAISSON' ? 'bg-emerald-100 text-emerald-900' :
                                   m.famille === 'TABLIER' ? 'bg-sky-100 text-sky-900' :
                                   m.famille === 'PRECADRE' ? 'bg-indigo-100 text-indigo-900' :
@@ -1573,13 +1608,13 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                                   {m.famille}
                                 </span>
                               </td>
-                              <td className="py-2 px-3 font-sans font-bold text-slate-900 border-r border-slate-300 text-xs sm:text-sm">{m.designation}</td>
-                              <td className="py-2 px-2 text-center font-black text-slate-900 border-r border-slate-300 text-sm sm:text-base">{m.longueurBarre} mm</td>
-                              <td className="py-2 px-2 text-center font-black text-emerald-900 text-base sm:text-lg border-r border-slate-300 bg-emerald-50">
+                              <td className="py-2 px-2 font-sans font-bold text-slate-900 border-r border-slate-300 text-xs sm:text-sm">{m.designation}</td>
+                              <td className="py-2 px-2 text-center font-black text-slate-900 border-r border-slate-300 text-xs sm:text-sm">{m.longueurBarre} mm</td>
+                              <td className="py-2 px-2 text-center font-black text-emerald-900 text-sm sm:text-base border-r border-slate-300 bg-emerald-50">
                                 {m.nbBarresNeuves} b
                               </td>
-                              <td className="py-2 px-2 text-center font-black text-slate-900 border-r border-slate-300 text-sm sm:text-base">{m.metrageBarresM.toFixed(1)} m</td>
-                              <td className="py-2 px-2 text-center font-sans font-bold text-slate-400 text-xs sm:text-sm">[ &nbsp; ] Prélevé</td>
+                              <td className="py-2 px-2 text-center font-black text-slate-900 border-r border-slate-300 text-xs sm:text-sm">{m.metrageBarresM.toFixed(1)} m</td>
+                              <td className="py-2 px-2 text-center font-sans font-bold text-slate-400 text-xs">[ &nbsp; ] Prélevé</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1610,34 +1645,34 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
 
                   return (
                     <div className="border-2 border-slate-400 overflow-hidden rounded">
-                      <table className="w-full text-left text-sm border-collapse">
+                      <table className="w-full text-left text-sm border-collapse table-fixed">
                         <thead className="bg-sky-50 text-slate-900 font-black border-b-2 border-slate-400 text-xs sm:text-sm">
                           <tr>
-                            <th className="py-1.5 px-3 border-r border-slate-300 w-28">Famille</th>
-                            <th className="py-1.5 px-3 border-r border-slate-300">Désignation Profilé</th>
-                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-32 bg-sky-100 text-sky-950 font-black">Chute à Sortir</th>
-                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-16">Qté</th>
-                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-40">Reste Estimé</th>
-                            <th className="py-1.5 px-2 text-center w-28">Pointage</th>
+                            <th className="py-1.5 px-2 border-r border-slate-300 w-[14%]">Famille</th>
+                            <th className="py-1.5 px-2 border-r border-slate-300 w-[36%]">Désignation Profilé</th>
+                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-[15%] bg-sky-100 text-sky-950 font-black">Chute à Sortir</th>
+                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-[9%]">Qté</th>
+                            <th className="py-1.5 px-2 text-center border-r border-slate-300 w-[14%]">Reste Estimé</th>
+                            <th className="py-1.5 px-2 text-center w-[12%]">Pointage</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-300 bg-white font-mono text-sm">
                           {chutesADestoquer.map((c, idx) => (
                             <tr key={idx} className="hover:bg-sky-50/40">
-                              <td className="py-2 px-3 font-sans font-black text-slate-900 border-r border-slate-300">
-                                <span className="px-2 py-0.5 rounded text-xs font-black bg-sky-100 text-sky-900">
+                              <td className="py-2 px-2 font-sans font-black text-slate-900 border-r border-slate-300">
+                                <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-sky-100 text-sky-900 inline-block">
                                   {c.famille}
                                 </span>
                               </td>
-                              <td className="py-2 px-3 font-sans font-bold text-slate-900 border-r border-slate-300 text-xs sm:text-sm">{c.designation}</td>
-                              <td className="py-2 px-2 text-center font-black text-sky-950 border-r border-slate-300 bg-sky-100/60 text-base sm:text-lg">
+                              <td className="py-2 px-2 font-sans font-bold text-slate-900 border-r border-slate-300 text-xs sm:text-sm">{c.designation}</td>
+                              <td className="py-2 px-2 text-center font-black text-sky-950 border-r border-slate-300 bg-sky-100/60 text-xs sm:text-sm">
                                 {c.longueurDepart} mm
                               </td>
-                              <td className="py-2 px-2 text-center font-black text-slate-950 border-r border-slate-300 text-base sm:text-lg">×{c.quantite}</td>
-                              <td className="py-2 px-2 text-center font-black border-r border-slate-300 text-slate-800 text-sm sm:text-base">
+                              <td className="py-2 px-2 text-center font-black text-slate-950 border-r border-slate-300 text-sm">×{c.quantite}</td>
+                              <td className="py-2 px-2 text-center font-black border-r border-slate-300 text-slate-800 text-xs">
                                 {c.restePrevu} mm ({c.statutReste})
                               </td>
-                              <td className="py-2 px-2 text-center font-sans font-bold text-slate-400 text-xs sm:text-sm">[ &nbsp; ] Déstocké</td>
+                              <td className="py-2 px-2 text-center font-sans font-bold text-slate-400 text-xs">[ &nbsp; ] Déstocké</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1659,38 +1694,38 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                   </div>
                 ) : (
                   <div className="border-2 border-amber-300 overflow-hidden rounded">
-                    <table className="w-full text-left text-sm border-collapse">
+                    <table className="w-full text-left text-sm border-collapse table-fixed">
                       <thead className="bg-amber-50 text-amber-950 font-black border-b-2 border-amber-300 text-xs sm:text-sm">
                         <tr>
-                          <th className="py-1.5 px-3 border-r border-amber-200 w-28">Famille</th>
-                          <th className="py-1.5 px-3 border-r border-amber-200 w-28">Code Art</th>
-                          <th className="py-1.5 px-3 border-r border-amber-200">Désignation Article</th>
-                          <th className="py-1.5 px-3 border-r border-amber-200">Règle / Affectation</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-200 w-32 bg-amber-100 text-amber-950 font-black">Qté Requise</th>
-                          <th className="py-1.5 px-2 text-center w-28">Pointage</th>
+                          <th className="py-1.5 px-2 border-r border-amber-200 w-[14%]">Famille</th>
+                          <th className="py-1.5 px-2 border-r border-amber-200 w-[14%]">Code Art</th>
+                          <th className="py-1.5 px-2 border-r border-amber-200 w-[34%]">Désignation Article</th>
+                          <th className="py-1.5 px-2 border-r border-amber-200 w-[16%]">Règle / Affectation</th>
+                          <th className="py-1.5 px-2 text-center border-r border-amber-200 w-[11%] bg-amber-100 text-amber-950 font-black">Qté Requise</th>
+                          <th className="py-1.5 px-2 text-center w-[11%]">Pointage</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-amber-200 bg-white text-sm">
                         {syntheseAccessoires.map((a, idx) => (
                           <tr key={idx} className="hover:bg-amber-50/50">
-                            <td className="py-2 px-3 font-black text-amber-900 border-r border-amber-200">
-                              <span className="px-2 py-0.5 rounded text-xs font-black bg-amber-100 text-amber-900">
+                            <td className="py-2 px-2 font-black text-amber-900 border-r border-amber-200">
+                              <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-amber-100 text-amber-900 inline-block">
                                 {a.famille}
                               </span>
                             </td>
-                            <td className="py-2 px-3 font-mono font-bold text-slate-900 border-r border-amber-200 text-xs sm:text-sm">
+                            <td className="py-2 px-2 font-mono font-bold text-slate-900 border-r border-amber-200 text-xs sm:text-sm">
                               {a.codeArt}
                             </td>
-                            <td className="py-2 px-3 font-bold text-slate-950 border-r border-amber-200 text-xs sm:text-sm">
+                            <td className="py-2 px-2 font-bold text-slate-950 border-r border-amber-200 text-xs sm:text-sm">
                               {a.designation}
                             </td>
-                            <td className="py-2 px-3 text-slate-600 border-r border-amber-200 text-xs sm:text-sm">
+                            <td className="py-2 px-2 text-slate-600 border-r border-amber-200 text-xs">
                               <span className="font-semibold text-slate-800">{a.regleCalcul}</span> ({a.detailPieces})
                             </td>
-                            <td className="py-2 px-2 text-center font-mono font-black text-amber-950 border-r border-amber-200 bg-amber-100/70 text-base sm:text-lg">
+                            <td className="py-2 px-2 text-center font-mono font-black text-amber-950 border-r border-amber-200 bg-amber-100/70 text-xs sm:text-sm">
                               {a.quantiteRequise} pcs
                             </td>
-                            <td className="py-2 px-2 text-center font-bold text-slate-400 text-xs sm:text-sm">
+                            <td className="py-2 px-2 text-center font-bold text-slate-400 text-xs">
                               [ &nbsp; ] Préparé
                             </td>
                           </tr>
@@ -1709,18 +1744,18 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                     <span>D. Toile Plissée / Maille MSTQ (Débit Toile, Guidage, Plis &amp; Cordes)</span>
                   </div>
                   <div className="border-2 border-amber-400 overflow-hidden rounded">
-                    <table className="w-full text-left text-sm border-collapse">
+                    <table className="w-full text-left text-sm border-collapse table-fixed">
                       <thead className="bg-amber-100 text-amber-950 font-black border-b-2 border-amber-400 text-xs sm:text-sm">
                         <tr>
-                          <th className="py-1.5 px-2 text-center w-20 border-r border-amber-300">Repère</th>
-                          <th className="py-1.5 px-3 border-r border-amber-300">Dim. Finie (L × H)</th>
-                          <th className="py-1.5 px-3 border-r border-amber-300">Ouverture</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-300 bg-amber-200">Coupe Fixe Maille</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-300">Nb Plis (+2)</th>
-                          <th className="py-1.5 px-3 border-r border-amber-300">Guidage &amp; Cordelettes</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-300">Surface</th>
-                          <th className="py-1.5 px-3 border-r border-amber-300">Article</th>
-                          <th className="py-1.5 px-3">Origine Toile (Chute / Neuf)</th>
+                          <th className="py-1.5 px-2 text-center w-[8%] border-r border-amber-300">Repère</th>
+                          <th className="py-1.5 px-2 border-r border-amber-300 w-[14%]">Dim. Finie (L × H)</th>
+                          <th className="py-1.5 px-2 border-r border-amber-300 w-[11%]">Ouverture</th>
+                          <th className="py-1.5 px-2 text-center border-r border-amber-300 bg-amber-200 w-[13%]">Coupe Fixe Maille</th>
+                          <th className="py-1.5 px-2 text-center border-r border-amber-300 w-[9%]">Nb Plis (+2)</th>
+                          <th className="py-1.5 px-2 border-r border-amber-300 w-[15%]">Guidage &amp; Cordelettes</th>
+                          <th className="py-1.5 px-2 text-center border-r border-amber-300 w-[8%]">Surface</th>
+                          <th className="py-1.5 px-2 border-r border-amber-300 w-[10%]">Article</th>
+                          <th className="py-1.5 px-2 w-[12%]">Origine Toile</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-amber-200 font-mono text-sm bg-white">
@@ -1730,22 +1765,22 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                           const chute = resMstq?.chute_trouvee;
                           return (
                             <tr key={m.id || idx} className="hover:bg-amber-50/50">
-                              <td className="py-2 px-2 text-center font-black text-amber-900 border-r border-amber-200 text-sm sm:text-base">{m.repere}</td>
-                              <td className="py-2 px-3 font-black text-slate-950 border-r border-amber-200 text-sm sm:text-base">{m.largeur} × {m.hauteur} mm (×{m.quantite})</td>
-                              <td className="py-2 px-3 font-sans text-xs sm:text-sm font-bold border-r border-amber-200 text-slate-800">
+                              <td className="py-2 px-1 text-center font-black text-amber-900 border-r border-amber-200 text-xs sm:text-sm">{m.repere}</td>
+                              <td className="py-2 px-2 font-black text-slate-950 border-r border-amber-200 text-xs">{m.largeur} × {m.hauteur} mm (×{m.quantite})</td>
+                              <td className="py-2 px-1 font-sans text-xs font-bold border-r border-amber-200 text-slate-800">
                                 {m.typeOuverture === 'PORTE_FENETRE' ? 'Porte-Fenêtre' : m.typeOuverture === 'DOUBLE_VANTAUX' ? 'Baie 2 Vtx' : m.typeOuverture === 'CENTRALE' ? 'Centrale' : m.typeOuverture === 'FIXE' ? 'Fixe' : 'Fenêtre'}
                               </td>
-                              <td className="py-2 px-2 text-center font-black text-amber-900 border-r border-amber-200 text-sm sm:text-base bg-amber-50">
-                                {c.dimension_fixe_requise} mm <span className="text-xs font-normal text-slate-600">({c.dimension_fixe_est === 'H' ? 'H' : 'L'})</span>
+                              <td className="py-2 px-1 text-center font-black text-amber-900 border-r border-amber-200 text-xs bg-amber-50">
+                                {c.dimension_fixe_requise} mm <span className="text-[10px] font-normal text-slate-600">({c.dimension_fixe_est === 'H' ? 'H' : 'L'})</span>
                               </td>
-                              <td className="py-2 px-2 text-center font-black text-emerald-800 border-r border-amber-200 text-sm sm:text-base">{c.nb_plis_requis} plis</td>
-                              <td className="py-2 px-3 text-xs sm:text-sm border-r border-amber-200 font-sans">
-                                <div><strong className="text-slate-900 font-mono">{c.nb_fils_guidage} fils</strong> (~{c.distance_cordes}mm)</div>
-                                <div className="text-purple-800 font-bold font-mono">Corde : {c.longueur_corde_totale_m}m ({c.longueur_corde_unitaire_m}m/fil)</div>
+                              <td className="py-2 px-1 text-center font-black text-emerald-800 border-r border-amber-200 text-xs">{c.nb_plis_requis} plis</td>
+                              <td className="py-2 px-2 text-xs border-r border-amber-200 font-sans">
+                                <div><strong className="text-slate-900 font-mono text-[11px]">{c.nb_fils_guidage} fils</strong> (~{c.distance_cordes}mm)</div>
+                                <div className="text-purple-800 font-bold font-mono text-[11px]">Corde : {c.longueur_corde_totale_m}m</div>
                               </td>
-                              <td className="py-2 px-2 text-center font-black text-slate-900 border-r border-amber-200 text-sm sm:text-base">{c.superficie_m2} m²</td>
-                              <td className="py-2 px-3 font-sans text-xs font-semibold text-slate-700 border-r border-amber-200">{m.articleDesignationMaille || 'MSTQ MAILLE PLISSÉE 20mm'}</td>
-                              <td className="py-2 px-3 font-sans text-xs">
+                              <td className="py-2 px-1 text-center font-black text-slate-900 border-r border-amber-200 text-xs sm:text-sm">{c.superficie_m2} m²</td>
+                              <td className="py-2 px-1 font-sans text-xs font-semibold text-slate-700 border-r border-amber-200">{m.articleDesignationMaille || 'MSTQ MAILLE PLISSÉE 20mm'}</td>
+                              <td className="py-2 px-1 font-sans text-xs">
                                 {chute ? (
                                   <div>
                                     <span className="inline-flex items-center gap-1 font-bold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300 text-[11px]">
@@ -1806,7 +1841,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
 
               {/* FAMILLE 1 : CAISSONS TUNNEL & SOUS-FACES ALU */}
               {sectionsParFamille.caissons.length > 0 && (
-                <div className="of-avoid-break space-y-3 pt-2">
+                <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between bg-slate-900 text-white p-2.5 rounded flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-base">📦</span>
@@ -1826,7 +1861,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
 
               {/* FAMILLE 2 : VOLETS & TABLIERS */}
               {sectionsParFamille.tabliers.length > 0 && (
-                <div className="of-avoid-break space-y-3 pt-2">
+                <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between bg-slate-900 text-white p-2.5 rounded flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-base">🚪</span>
@@ -1846,7 +1881,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
 
               {/* FAMILLE 3 : PRÉCADRES ALUMINIUM */}
               {sectionsParFamille.precadres.length > 0 && (
-                <div className="of-avoid-break space-y-3 pt-2">
+                <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between bg-slate-900 text-white p-2.5 rounded flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-base">🔲</span>
@@ -1866,7 +1901,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
 
               {/* FAMILLE 4 : MOUSTIQUAIRES (Profilés Cadre & Coulisses) */}
               {sectionsParFamille.moustiquaires.length > 0 && (
-                <div className="of-avoid-break space-y-3 pt-2">
+                <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between bg-slate-900 text-white p-2.5 rounded flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-base">🖼️</span>
@@ -1888,6 +1923,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -234,6 +234,9 @@ export function getPrefixeCommande(
   donneurOrdreNom: string,
   codifications: ClientCodification[] = INITIAL_CLIENT_CODIFICATIONS
 ): string {
+  if (!donneurOrdreNom || !donneurOrdreNom.trim()) {
+    return '';
+  }
   const codif = codifications.find(
     c => c.nom.toUpperCase().trim() === (donneurOrdreNom || '').toUpperCase().trim() ||
          c.code.toUpperCase().trim() === (donneurOrdreNom || '').toUpperCase().trim()
