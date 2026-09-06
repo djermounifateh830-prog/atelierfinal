@@ -2816,19 +2816,39 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
     setLignesCaissons(enrichedCaissons);
     setLignesPrecadres(dossier.articlesPrecadres || []);
 
-    // Déterminer la famille d'article à ouvrir
-    if (dossier.articlesCaissons && dossier.articlesCaissons.length > 0) {
-      setFamilleArticle('CAISSON');
-      setInputRepere(`CT-${dossier.articlesCaissons.length + 1}`);
-    } else if (dossier.articlesTabliers && dossier.articlesTabliers.length > 0) {
+    // Déterminer la famille d'article à ouvrir selon le contenu et le préfixe
+    const nbCaissons = (dossier.articlesCaissons || []).length;
+    const nbTabliers = (dossier.articlesTabliers || []).length;
+    const nbMoustiquaires = (dossier.articlesMoustiquaires || []).length;
+    const nbPrecadres = (dossier.articlesPrecadres || []).length;
+
+    const refUpper = (dossier.refCommande || '').toUpperCase();
+    
+    // Si la commande a un préfixe de codification identifiable
+    if (refUpper.startsWith('SA-') && nbTabliers > 0) {
       setFamilleArticle('TABLIER');
-      setInputRepere(`SA-${dossier.articlesTabliers.length + 1}`);
-    } else if (dossier.articlesMoustiquaires && dossier.articlesMoustiquaires.length > 0) {
+      setInputRepere(`SA-${nbTabliers + 1}`);
+    } else if ((refUpper.startsWith('SC-') || refUpper.startsWith('D-')) && nbMoustiquaires > 0) {
       setFamilleArticle('MOUSTIQUAIRE');
-      setInputRepere(`H${dossier.articlesMoustiquaires.length + 1}`);
-    } else if (dossier.articlesPrecadres && dossier.articlesPrecadres.length > 0) {
+      setInputRepere(`H${nbMoustiquaires + 1}`);
+    } else if (refUpper.startsWith('1R') && nbPrecadres > 0) {
       setFamilleArticle('PRECADRE');
-      setInputRepere(`1R${dossier.articlesPrecadres.length + 1}`);
+      setInputRepere(`1R${nbPrecadres + 1}`);
+    } else if ((refUpper.startsWith('CT-') || refUpper.startsWith('A-')) && nbCaissons > 0) {
+      setFamilleArticle('CAISSON');
+      setInputRepere(`CT-${nbCaissons + 1}`);
+    } else {
+      // Sinon ouvrir la famille prédominante (celle avec le plus d'articles saisis)
+      const counts = [
+        { fam: 'TABLIER' as FamilleProduit, count: nbTabliers, repere: `SA-${nbTabliers + 1}` },
+        { fam: 'MOUSTIQUAIRE' as FamilleProduit, count: nbMoustiquaires, repere: `H${nbMoustiquaires + 1}` },
+        { fam: 'CAISSON' as FamilleProduit, count: nbCaissons, repere: `CT-${nbCaissons + 1}` },
+        { fam: 'PRECADRE' as FamilleProduit, count: nbPrecadres, repere: `1R${nbPrecadres + 1}` },
+      ].sort((a, b) => b.count - a.count);
+
+      const best = counts[0].count > 0 ? counts[0] : counts[0];
+      setFamilleArticle(best.fam);
+      setInputRepere(best.repere);
     }
 
     setModeSaisieActif(true);  // Activer le mode saisie lors de la reprise d'un dossier
@@ -7460,43 +7480,55 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
       {/* ========================================================================= */}
       {/* 8. MODAL IMPRESSION ORDRE DE FABRICATION UNIFIÉ (MULTI-FAMILLES DU DOSSIER) */}
       {/* ========================================================================= */}
-      {modalOFDebitCaissonOpen && caissonSections.length > 0 && (
-        <OrdreFabricationModal
-          isOpen={modalOFDebitCaissonOpen}
-          onClose={() => setModalOFDebitCaissonOpen(false)}
-          titreProduit={`Ordre de Fabrication Débit — Dossier ${clientDeMonClient || 'Client'}`}
-          refCommande={(() => {
-            const allRefs = new Set<string>();
-            sectionsMultiCaisson.forEach(s => {
-              if (s.commandesInvolved && Array.isArray(s.commandesInvolved)) {
-                s.commandesInvolved.forEach(r => { if (r && r.trim()) allRefs.add(r.trim()); });
+      {modalOFDebitCaissonOpen && caissonSections.length > 0 && (() => {
+        // Déterminer la véritable famille des sections optimisées
+        const secFamilies = Array.from(new Set(caissonSections.map(s => s.famille).filter(Boolean))) as FamilleProduit[];
+        const famPourOF: FamilleProduit = (
+          (multiOptFamilyFilter !== 'ALL' && ['TABLIER', 'MOUSTIQUAIRE', 'CAISSON', 'PRECADRE'].includes(multiOptFamilyFilter))
+            ? (multiOptFamilyFilter as FamilleProduit)
+            : (secFamilies.length === 1 ? secFamilies[0] : (familleArticle || 'TABLIER'))
+        );
+        const labelFamille = famPourOF === 'TABLIER' ? 'Volets & Tabliers' : famPourOF === 'MOUSTIQUAIRE' ? 'Moustiquaires' : famPourOF === 'PRECADRE' ? 'Précadres' : 'Caissons & Sous-Faces';
+
+        return (
+          <OrdreFabricationModal
+            isOpen={modalOFDebitCaissonOpen}
+            onClose={() => setModalOFDebitCaissonOpen(false)}
+            famille={famPourOF}
+            titreProduit={`Ordre de Fabrication Débit (${labelFamille}) — Dossier ${clientDeMonClient || 'Client'}`}
+            refCommande={(() => {
+              const allRefs = new Set<string>();
+              sectionsMultiCaisson.forEach(s => {
+                if (s.commandesInvolved && Array.isArray(s.commandesInvolved)) {
+                  s.commandesInvolved.forEach(r => { if (r && r.trim()) allRefs.add(r.trim()); });
+                }
+              });
+              if (multiOptActiveRefs && multiOptActiveRefs.length > 0) {
+                multiOptActiveRefs.forEach(r => { if (r && r.trim()) allRefs.add(r.trim()); });
               }
-            });
-            if (multiOptActiveRefs && multiOptActiveRefs.length > 0) {
-              multiOptActiveRefs.forEach(r => { if (r && r.trim()) allRefs.add(r.trim()); });
-            }
-            if (allRefs.size === 0 && numCommande) {
-              allRefs.add(numCommande);
-            }
-            const arr = Array.from(allRefs);
-            return arr.length > 0 ? arr.join(' + ') : (numCommande || 'DOSSIER');
-          })()}
-          nomClient={clientDeMonClient}
-          dateCommande={dateCommande}
-          coloris="MULTI"
-          sections={caissonSections}
-          articles={articles}
-          lignesMoustiquaires={lignesMoustiquaires}
-          mapping={mapping}
-          donneurOrdre={monClient}
-          numCommandeCaisson={numCommandeCaisson}
-          numCommandeSousFace={numCommandeSousFace}
-          numCommandeTablier={numCommandeTablier}
-          numCommandeMoustiquaire={numCommandeMoustiquaire}
-          numCommandePrecadre={numCommandePrecadre}
-          onOFEmis={onDossiersUpdated}
-        />
-      )}
+              if (allRefs.size === 0 && numCommande) {
+                allRefs.add(numCommande);
+              }
+              const arr = Array.from(allRefs);
+              return arr.length > 0 ? arr.join(' + ') : (numCommande || 'DOSSIER');
+            })()}
+            nomClient={clientDeMonClient}
+            dateCommande={dateCommande}
+            coloris="MULTI"
+            sections={caissonSections}
+            articles={articles}
+            lignesMoustiquaires={lignesMoustiquaires}
+            mapping={mapping}
+            donneurOrdre={monClient}
+            numCommandeCaisson={numCommandeCaisson}
+            numCommandeSousFace={numCommandeSousFace}
+            numCommandeTablier={numCommandeTablier}
+            numCommandeMoustiquaire={numCommandeMoustiquaire}
+            numCommandePrecadre={numCommandePrecadre}
+            onOFEmis={onDossiersUpdated}
+          />
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* 9. MODAL IMPRESSION ORDRE DE FABRICATION MOUSTIQUAIRES                   */}
@@ -7505,6 +7537,7 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
         <OrdreFabricationModal
           isOpen={modalOFDebitMSTQOpen}
           onClose={() => setModalOFDebitMSTQOpen(false)}
+          famille="MOUSTIQUAIRE"
           titreProduit={`Fiche de Coupe Débit Moustiquaires — ${numCommande}`}
           refCommande={numCommande}
           nomClient={clientDeMonClient}

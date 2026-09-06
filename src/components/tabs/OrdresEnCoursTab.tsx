@@ -38,6 +38,7 @@ import {
   Edit2,
   Save,
   Tag,
+  Sparkles,
   Truck,
   FileCheck
 } from 'lucide-react';
@@ -91,6 +92,39 @@ export const OrdresEnCoursTab: React.FC<OrdresEnCoursTabProps> = ({
   const [editFormClient, setEditFormClient] = useState<string>('');
   const [editFormDonneur, setEditFormDonneur] = useState<string>('');
   const [editFormTitre, setEditFormTitre] = useState<string>('');
+  const [editFormFamille, setEditFormFamille] = useState<FamilleProduit>('TABLIER');
+  const [isReparing, setIsReparing] = useState<boolean>(false);
+  const [reparationFeedback, setReparationFeedback] = useState<string | null>(null);
+
+  // Détection / Réparation automatique au montage pour corriger immédiatement toute mauvaise classification
+  useEffect(() => {
+    let isMounted = true;
+    StorageService.reparerFamillesOF().then(res => {
+      if (isMounted && res.repares > 0) {
+        onRefreshData();
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  const handleReparerFamilles = async () => {
+    setIsReparing(true);
+    setReparationFeedback(null);
+    try {
+      const res = await StorageService.reparerFamillesOF();
+      onRefreshData();
+      if (res.repares > 0) {
+        setReparationFeedback(`✅ ${res.repares} commande(s) réassignée(s) avec succès à leur véritable famille !`);
+      } else {
+        setReparationFeedback('✨ Toutes vos commandes ont déjà leur famille de produit correctement identifiée.');
+      }
+    } catch (err) {
+      setReparationFeedback('Erreur lors de la détection des familles.');
+    } finally {
+      setIsReparing(false);
+      setTimeout(() => setReparationFeedback(null), 5000);
+    }
+  };
 
   const handleOpenEditOF = (of: SuiviOF) => {
     setEditingOF(of);
@@ -98,6 +132,7 @@ export const OrdresEnCoursTab: React.FC<OrdresEnCoursTabProps> = ({
     setEditFormClient(of.nomClient || '');
     setEditFormDonneur(of.donneurOrdre || '');
     setEditFormTitre(of.titreSection || '');
+    setEditFormFamille(of.famille || 'TABLIER');
   };
 
   const handleSaveEditOF = async () => {
@@ -107,7 +142,8 @@ export const OrdresEnCoursTab: React.FC<OrdresEnCoursTabProps> = ({
       numCommande: editFormNumCmd.trim() || editingOF.numCommande,
       nomClient: editFormClient.trim() || editingOF.nomClient,
       donneurOrdre: editFormDonneur.trim(),
-      titreSection: editFormTitre.trim() || editingOF.titreSection
+      titreSection: editFormTitre.trim() || editingOF.titreSection,
+      famille: editFormFamille
     };
     await StorageService.upsertSuiviOF(updated);
     setEditingOF(null);
@@ -362,6 +398,17 @@ export const OrdresEnCoursTab: React.FC<OrdresEnCoursTabProps> = ({
             <option value="MOUSTIQUAIRE">Moustiquaire (Toile &amp; Profilés)</option>
             <option value="PRECADRE">Précadre</option>
           </select>
+
+          {/* Bouton Réparation / Synchronisation Familles */}
+          <button
+            onClick={handleReparerFamilles}
+            disabled={isReparing}
+            title="Analyser les articles et rétablir automatiquement la vraie famille (Tablier, Moustiquaire, Précadre) pour chaque OF"
+            className="px-3 py-2 bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/50 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <Sparkles className={`w-3.5 h-3.5 text-indigo-400 ${isReparing ? 'animate-spin' : ''}`} />
+            <span>{isReparing ? 'Analyse...' : 'Corriger Familles'}</span>
+          </button>
         </div>
 
         {/* Boutons rapides Statut */}
@@ -392,6 +439,22 @@ export const OrdresEnCoursTab: React.FC<OrdresEnCoursTabProps> = ({
           ))}
         </div>
       </div>
+
+      {/* ── Message / Bannière de Réparation Feedback ── */}
+      {reparationFeedback && (
+        <div className="bg-indigo-950/70 border border-indigo-700/60 rounded-xl px-4 py-2.5 text-xs text-indigo-200 flex items-center justify-between shadow-lg animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-400" />
+            <span className="font-medium">{reparationFeedback}</span>
+          </div>
+          <button
+            onClick={() => setReparationFeedback(null)}
+            className="text-indigo-400 hover:text-white text-xs font-bold"
+          >
+            Fermer
+          </button>
+        </div>
+      )}
 
       {/* ── Table Principale des Ordres de Fabrication ── */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -952,6 +1015,34 @@ export const OrdresEnCoursTab: React.FC<OrdresEnCoursTabProps> = ({
                   placeholder="Titre de la section"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-400"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-300 flex items-center gap-1">
+                  <span>Famille de Produit de l'OF :</span>
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(['TABLIER', 'MOUSTIQUAIRE', 'CAISSON', 'PRECADRE'] as FamilleProduit[]).map(fam => (
+                    <button
+                      key={fam}
+                      type="button"
+                      onClick={() => setEditFormFamille(fam)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${
+                        editFormFamille === fam
+                          ? fam === 'TABLIER' ? 'bg-amber-950 text-amber-300 border-amber-600'
+                            : fam === 'MOUSTIQUAIRE' ? 'bg-purple-950 text-purple-300 border-purple-600'
+                            : fam === 'PRECADRE' ? 'bg-emerald-950 text-emerald-300 border-emerald-600'
+                            : 'bg-sky-950 text-sky-300 border-sky-600'
+                          : 'bg-slate-900 text-slate-400 border-slate-700 hover:bg-slate-800'
+                      }`}
+                    >
+                      {fam === 'TABLIER' ? 'Volet / Tablier'
+                        : fam === 'MOUSTIQUAIRE' ? 'Moustiquaire'
+                        : fam === 'PRECADRE' ? 'Précadre'
+                        : 'Caisson'}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

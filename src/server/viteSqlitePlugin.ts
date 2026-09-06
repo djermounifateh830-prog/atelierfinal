@@ -138,6 +138,10 @@ export function sqlitePlugin(): Plugin {
         }
 
         // --- 7. SUIVIS OF ---
+        if (url === '/api/of/reparer-familles' && method === 'POST') {
+          const resReparation = atelierDb.reparerFamillesOF();
+          return sendJson(res, { success: true, repares: resReparation.repares, data: atelierDb.getSuivisOF() });
+        }
         if (url === '/api/of' && method === 'GET') {
           return sendJson(res, { success: true, data: atelierDb.getSuivisOF() });
         }

@@ -447,7 +447,15 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       const groupesChutesRecup = Array.from(mapChutes.values()).sort((a, b) => b.support - a.support);
 
       const titreBrut = sec.titreSection || art?.designation || `Poste ${idx + 1}`;
-      const titrePropre = titreBrut.replace(/\s*\([^)]*\)/g, '').trim();
+      // Nettoyer rigoureusement les caractères corrompus (\uFFFD, non-breakables, bullets mal encodés)
+      const titreNettoye = titreBrut
+        .replace(/[\uFFFD\u0080-\u009F]/g, '')
+        .replace(/\s*\([^)]*\)/g, '')
+        .replace(/^[📦📐🚪🏁🔩📏🔲🖼️]\s*/, '')
+        .replace(/:\s*•\s*/, ': ')
+        .replace(/:\s+/, ': ')
+        .trim();
+      const titrePropre = titreNettoye;
       const isSousFaceDetected = !!sec.isSousFace || sec.badge === 'SOUS-FACE' || titreBrut.includes('SF') || titreBrut.includes('Sous-Face');
 
       return {
@@ -621,65 +629,67 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       }
     }
 
-    const barresHTML = sec.groupesBarresNeuves.map(g => `
-      <tr>
-        <td style="width:7%;text-align:center;font-weight:900;color:#047857;font-size:14px;background:#f0fdf4;padding:3px 4px;vertical-align:middle;">${g.quantite}</td>
-        <td colspan="2" style="width:53%;padding:0;vertical-align:top;border-right:1px solid #64748b;">
-          <table style="width:100%;border-collapse:collapse;margin:0;table-layout:fixed;">
-            <tbody>
-              ${g.piecesInfo.map((p, pIdx) => `
-                <tr style="${pIdx > 0 ? 'border-top:1px solid #cbd5e1;' : ''}">
-                  <td style="width:49%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border:none;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
-                    <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
-                      <strong style="font-size:11px;color:#0f172a;background:#fef3c7;padding:1px 5px;border-radius:3px;border:1px solid #fde68a;">${p.repere}</strong>
-                      ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
-                    </div>
-                  </td>
-                  <td style="width:51%;font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#0f172a;padding:3px 5px;border:none;vertical-align:middle;text-align:center;box-sizing:border-box;">
-                    <strong style="font-size:12px;color:#0f172a;font-family:Consolas,monospace;">${p.longueur}</strong>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </td>
-        <td style="width:13%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:12px;color:#1e293b;padding:3px 4px;vertical-align:middle;">${Math.round(g.chute)} mm</td>
-        <td style="width:12%;text-align:center;font-weight:900;font-size:10px;color:${g.statut === 'STOCK' ? '#047857' : g.statut === 'Dechet' ? '#64748b' : '#b91c1c'};padding:3px 4px;vertical-align:middle;">
-          ${g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
-        </td>
-        <td style="width:15%;padding:3px 4px;vertical-align:middle;box-sizing:border-box;">
-          <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
-        </td>
-      </tr>`).join('');
+    const barresHTML = sec.groupesBarresNeuves.map(g => {
+      const nbPieces = g.piecesInfo.length;
+      return g.piecesInfo.map((p, pIdx) => `
+        <tr style="border-bottom:1px solid #cbd5e1;">
+          ${pIdx === 0 ? `
+            <td rowspan="${nbPieces}" style="width:7%;text-align:center;font-weight:900;color:#047857;font-size:13px;background:#f0fdf4;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${g.quantite}</td>
+            <td rowspan="${nbPieces}" style="width:13%;text-align:center;font-family:Consolas,monospace;font-weight:bold;font-size:11px;color:#334155;background:#f8fafc;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">Barre ${Math.round(sec.barreLongueur || 6000)} mm</td>
+          ` : ''}
+          <td style="width:25%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border-right:1px solid #cbd5e1;vertical-align:middle;">
+            <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+              <strong style="font-size:11px;color:#0f172a;background:#fef3c7;padding:1px 5px;border-radius:3px;border:1px solid #fde68a;">${p.repere}</strong>
+              ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
+            </div>
+          </td>
+          <td style="width:20%;font-family:Consolas,monospace;font-weight:900;font-size:12px;color:#0f172a;padding:3px 5px;vertical-align:middle;text-align:center;border-right:1px solid #64748b;">
+            <span style="background:#f1f5f9;border:1px solid #cbd5e1;padding:1px 6px;border-radius:3px;display:inline-block;">${p.longueur}</span>
+          </td>
+          ${pIdx === 0 ? `
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:11px;color:#1e293b;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${Math.round(g.chute)} mm</td>
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-size:10px;color:${g.statut === 'STOCK' ? '#047857' : g.statut === 'Dechet' ? '#64748b' : '#b91c1c'};padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">
+              ${g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
+            </td>
+            <td rowspan="${nbPieces}" style="width:13%;padding:3px 2px;vertical-align:middle;text-align:center;">
+              <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
+            </td>
+          ` : ''}
+        </tr>
+      `).join('');
+    }).join('');
 
-    const chutesHTML = sec.groupesChutesRecup.map(g => `
-      <tr>
-        <td style="width:7%;text-align:center;font-weight:900;color:#1d4ed8;font-size:14px;background:#eff6ff;padding:3px 4px;vertical-align:middle;">${g.quantite}</td>
-        <td style="width:14%;text-align:center;font-weight:900;font-family:Consolas,monospace;color:#1d4ed8;font-size:12px;background:#eff6ff;padding:3px 4px;vertical-align:middle;">${Math.round(g.support)} mm</td>
-        <td colspan="2" style="width:49%;padding:0;vertical-align:top;border-right:1px solid #64748b;">
-          <table style="width:100%;border-collapse:collapse;margin:0;table-layout:fixed;">
-            <tbody>
-              ${g.piecesInfo.map((p, pIdx) => `
-                <tr style="${pIdx > 0 ? 'border-top:1px solid #cbd5e1;' : ''}">
-                  <td style="width:49%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border:none;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
-                    <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
-                      <strong style="font-size:11px;color:#0f172a;background:#e0f2fe;padding:1px 5px;border-radius:3px;border:1px solid #bae6fd;">${p.repere}</strong>
-                      ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
-                    </div>
-                  </td>
-                  <td style="width:51%;font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#0f172a;padding:3px 5px;border:none;vertical-align:middle;text-align:center;box-sizing:border-box;">
-                    <strong style="font-size:12px;color:#0f172a;font-family:Consolas,monospace;">${p.longueur}</strong>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </td>
-        <td style="width:13%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:12px;color:#1e293b;padding:3px 4px;vertical-align:middle;">${Math.round(g.reste)} mm</td>
-        <td style="width:17%;padding:3px 4px;vertical-align:middle;box-sizing:border-box;">
-          <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
-        </td>
-      </tr>`).join('');
+    const chutesHTML = sec.groupesChutesRecup.map(g => {
+      const nbPieces = g.piecesInfo.length;
+      const chuteStatut = g.reste >= (sec.article?.refus_min ?? 300) ? '📦 À STOCKER' : '🗑️ DÉCHET';
+      const chuteStatutColor = g.reste >= (sec.article?.refus_min ?? 300) ? '#047857' : '#64748b';
+      return g.piecesInfo.map((p, pIdx) => `
+        <tr style="border-bottom:1px solid #cbd5e1;">
+          ${pIdx === 0 ? `
+            <td rowspan="${nbPieces}" style="width:7%;text-align:center;font-weight:900;color:#1d4ed8;font-size:13px;background:#eff6ff;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${g.quantite}</td>
+            <td rowspan="${nbPieces}" style="width:13%;text-align:center;font-family:Consolas,monospace;font-weight:900;font-size:11px;color:#1d4ed8;background:#eff6ff;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">Chute ${Math.round(g.support)} mm</td>
+          ` : ''}
+          <td style="width:25%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border-right:1px solid #cbd5e1;vertical-align:middle;">
+            <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+              <strong style="font-size:11px;color:#0f172a;background:#e0f2fe;padding:1px 5px;border-radius:3px;border:1px solid #bae6fd;">${p.repere}</strong>
+              ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
+            </div>
+          </td>
+          <td style="width:20%;font-family:Consolas,monospace;font-weight:900;font-size:12px;color:#0f172a;padding:3px 5px;vertical-align:middle;text-align:center;border-right:1px solid #64748b;">
+            <span style="background:#f1f5f9;border:1px solid #cbd5e1;padding:1px 6px;border-radius:3px;display:inline-block;">${p.longueur}</span>
+          </td>
+          ${pIdx === 0 ? `
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:11px;color:#1e293b;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${Math.round(g.reste)} mm</td>
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-size:10px;color:${chuteStatutColor};padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">
+              ${chuteStatut}
+            </td>
+            <td rowspan="${nbPieces}" style="width:13%;padding:3px 2px;vertical-align:middle;text-align:center;">
+              <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
+            </td>
+          ` : ''}
+        </tr>
+      `).join('');
+    }).join('');
 
     return `
     <div class="section-container" style="page-break-inside:avoid;margin-bottom:10px;">
@@ -692,14 +702,15 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       <div style="font-size:11px;font-weight:900;margin:4px 0;border-left:3px solid #047857;padding-left:6px;text-transform:uppercase;color:#065f46;">
         COUPES SUR BARRES NEUVES (${sec.resultat.total_barres_neuves} barre(s) — Rendement : ${sec.resultat.taux_rendement}%)
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;">
-        <thead><tr style="background:#f8fafc;">
-          <th style="width:7%;text-align:center;font-size:11px;padding:3px 4px;">Qté</th>
-          <th style="width:26%;font-size:11px;padding:3px 4px;">Repère(s) &amp; N° Cmd</th>
-          <th style="width:27%;text-align:center;font-size:11px;padding:3px 4px;">Longueur(s) de Coupe</th>
-          <th style="width:13%;text-align:center;font-size:11px;padding:3px 4px;">Reste</th>
-          <th style="width:12%;text-align:center;font-size:11px;padding:3px 4px;">Statut</th>
-          <th style="width:15%;text-align:center;font-size:11px;padding:3px 4px;">Nouvelle Chute</th>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;border:1px solid #64748b;">
+        <thead><tr style="background:#f8fafc;border-bottom:2px solid #64748b;">
+          <th style="width:7%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Qté</th>
+          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Origine</th>
+          <th style="width:25%;font-size:11px;padding:3px 5px;border-right:1px solid #64748b;text-align:left;">Repère(s) &amp; N° Cmd</th>
+          <th style="width:20%;text-align:center;font-size:11px;padding:3px 4px;border-right:1px solid #64748b;">Longueur(s) Coupe</th>
+          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Reste</th>
+          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Statut</th>
+          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;">Nouvelle Chute</th>
         </tr></thead>
         <tbody>${barresHTML}</tbody>
       </table>` : ''}
@@ -707,14 +718,15 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       <div style="font-size:11px;font-weight:900;margin:4px 0;border-left:3px solid #1d4ed8;padding-left:6px;text-transform:uppercase;color:#1e40af;">
         COUPES SUR CHUTES DU STOCK (${sec.resultat.total_chutes_recyclees} chute(s))
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;">
-        <thead><tr style="background:#eff6ff;">
-          <th style="width:7%;text-align:center;font-size:11px;padding:3px 4px;">Qté</th>
-          <th style="width:14%;text-align:center;font-size:11px;padding:3px 4px;">Chute Prévue</th>
-          <th style="width:24%;font-size:11px;padding:3px 4px;">Repère(s) &amp; N° Cmd</th>
-          <th style="width:25%;text-align:center;font-size:11px;padding:3px 4px;">Longueur(s) de Coupe</th>
-          <th style="width:13%;text-align:center;font-size:11px;padding:3px 4px;">Reste</th>
-          <th style="width:17%;text-align:center;font-size:11px;padding:3px 4px;">Nouvelle Chute</th>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;border:1px solid #64748b;">
+        <thead><tr style="background:#eff6ff;border-bottom:2px solid #64748b;">
+          <th style="width:7%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Qté</th>
+          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Origine</th>
+          <th style="width:25%;font-size:11px;padding:3px 5px;border-right:1px solid #64748b;text-align:left;">Repère(s) &amp; N° Cmd</th>
+          <th style="width:20%;text-align:center;font-size:11px;padding:3px 4px;border-right:1px solid #64748b;">Longueur(s) Coupe</th>
+          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Reste</th>
+          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Statut</th>
+          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;">Nouvelle Chute</th>
         </tr></thead>
         <tbody>${chutesHTML}</tbody>
       </table>` : ''}
@@ -1086,10 +1098,47 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     const today = new Date();
     const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
 
-    const validFamille: FamilleProduit =
-      famille === 'TABLIER' || famille === 'MOUSTIQUAIRE' || famille === 'CAISSON' || famille === 'PRECADRE'
-        ? famille
-        : 'CAISSON';
+    // Détection intelligente et robuste de la véritable famille du produit
+    const detecterFamille = (): FamilleProduit => {
+      if (famille === 'TABLIER' || famille === 'MOUSTIQUAIRE' || famille === 'CAISSON' || famille === 'PRECADRE') {
+        return famille;
+      }
+      // 1. Inspecter les sections transmises
+      if (sections && sections.length > 0) {
+        const secFamilies = sections.map((s: any) => s.famille).filter(Boolean);
+        const uniqueFams = Array.from(new Set(secFamilies));
+        if (uniqueFams.includes('TABLIER') && !uniqueFams.includes('CAISSON')) return 'TABLIER';
+        if (uniqueFams.includes('MOUSTIQUAIRE') && !uniqueFams.includes('CAISSON')) return 'MOUSTIQUAIRE';
+        if (uniqueFams.includes('PRECADRE') && !uniqueFams.includes('CAISSON')) return 'PRECADRE';
+        if (uniqueFams.length === 1 && (uniqueFams[0] === 'TABLIER' || uniqueFams[0] === 'MOUSTIQUAIRE' || uniqueFams[0] === 'PRECADRE' || uniqueFams[0] === 'CAISSON')) {
+          return uniqueFams[0] as FamilleProduit;
+        }
+      }
+      // 2. Moustiquaires spécifiques
+      if (lignesMoustiquaires && lignesMoustiquaires.length > 0) return 'MOUSTIQUAIRE';
+      if (chutesMailleReservees.length > 0) return 'MOUSTIQUAIRE';
+      // 3. Inspecter le titre du produit
+      const titreUpper = (titreProduit || '').toUpperCase();
+      if (titreUpper.includes('TABLIER') || titreUpper.includes('VOLET') || titreUpper.includes('LAME')) return 'TABLIER';
+      if (titreUpper.includes('MOUSTIQUAIRE') || titreUpper.includes('MSTQ')) return 'MOUSTIQUAIRE';
+      if (titreUpper.includes('PRÉCADRE') || titreUpper.includes('PRECADRE')) return 'PRECADRE';
+      if (titreUpper.includes('CAISSON') || titreUpper.includes('SOUS-FACE')) return 'CAISSON';
+      // 4. Inspecter les lignes de retour
+      if (lignesRetour.some((l: any) => l.designation?.includes('TBL') || l.piecesInfoStr?.includes('TBL') || l.piecesInfoStr?.includes('LAME') || l.repere?.startsWith('SA-') || l.repere?.startsWith('LF-') || l.repere?.startsWith('TAB-'))) {
+        return 'TABLIER';
+      }
+      if (lignesRetour.some((l: any) => l.designation?.includes('MSTQ') || l.piecesInfoStr?.includes('MSTQ') || l.repere?.includes('Cadre') || l.repere?.startsWith('BI-') || l.repere?.startsWith('H') || l.repere?.startsWith('D-') || l.repere?.startsWith('SC-'))) {
+        return 'MOUSTIQUAIRE';
+      }
+      // 5. Inspecter le préfixe de commande
+      const refUpper = (refCommande || '').toUpperCase();
+      if (refUpper.startsWith('SA-')) return 'TABLIER';
+      if (refUpper.startsWith('SC-') || refUpper.startsWith('D-')) return 'MOUSTIQUAIRE';
+      if (refUpper.startsWith('1R')) return 'PRECADRE';
+      return 'TABLIER';
+    };
+
+    const validFamille: FamilleProduit = detecterFamille();
 
     const suivi: SuiviOF = {
       id: `of-${Date.now()}`,
@@ -1237,65 +1286,86 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                 <thead className="bg-slate-100 text-slate-900 font-black border-b-2 border-slate-400 text-xs sm:text-sm">
                   <tr>
                     <th className="py-1.5 px-2 text-center w-[7%] border-r border-slate-300">Qté</th>
-                    <th className="py-1.5 px-2 border-r border-slate-300 w-[26%]">Repère(s) &amp; N° Cmd</th>
-                    <th className="py-1.5 px-2 border-r border-slate-300 w-[27%] text-center">Longueur(s) de Coupe</th>
-                    <th className="py-1.5 px-2 text-center w-[13%] border-r border-slate-300">Reste</th>
-                    <th className="py-1.5 px-2 text-center w-[12%] border-r border-slate-300">Statut</th>
-                    <th className="py-1.5 px-2 text-center w-[15%]">Nouvelle Chute</th>
+                    <th className="py-1.5 px-2 text-center w-[13%] border-r border-slate-300">Origine</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[25%] text-left">Repère(s) &amp; N° Cmd</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[20%] text-center">Longueur(s) Coupe</th>
+                    <th className="py-1.5 px-2 text-center w-[11%] border-r border-slate-300">Reste</th>
+                    <th className="py-1.5 px-2 text-center w-[11%] border-r border-slate-300">Statut</th>
+                    <th className="py-1.5 px-2 text-center w-[13%]">Nouvelle Chute</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-300 bg-white">
-                  {sec.groupesBarresNeuves.map((g, i) => (
-                    <tr key={i} className="hover:bg-slate-50">
-                      <td className="py-2 px-1 text-center font-black text-sm sm:text-base text-emerald-800 border-r border-slate-300 font-mono bg-emerald-50/50">
-                        {g.quantite}
-                      </td>
-                      <td colSpan={2} className="p-0 border-r border-slate-300">
-                        <table className="w-full border-collapse table-fixed">
-                          <tbody className="divide-y divide-slate-200">
-                            {g.piecesInfo.map((p, pIdx) => (
-                              <tr key={pIdx}>
-                                <td className="py-1.5 px-2 w-[49%] border-r border-slate-300 font-mono">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="font-black text-xs text-slate-950 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-                                      {p.repere}
-                                    </span>
-                                    {p.cmdTag && (
-                                      <span className="text-[10px] bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold">
-                                        Cmd {p.cmdTag}
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="py-1.5 px-2 w-[51%] font-mono text-center">
-                                  <span className="font-mono font-black text-xs sm:text-sm text-slate-950 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-300 inline-block shadow-xs">
-                                    {p.longueur}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </td>
-                      <td className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-slate-900 border-r border-slate-300">
-                        {Math.round(g.chute)} mm
-                      </td>
-                      <td className="py-2 px-1 text-center font-bold text-xs border-r border-slate-300">
-                        <span className={`px-1.5 py-0.5 rounded font-black text-[11px] ${
-                          g.statut === 'STOCK'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : g.statut === 'Dechet'
-                            ? 'bg-slate-100 text-slate-600'
-                            : 'bg-rose-100 text-rose-800 border border-rose-300'
-                        }`}>
-                          {g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
-                        </span>
-                      </td>
-                      <td className="py-1 px-2 text-center align-middle">
-                        <div className="border-b border-dashed border-slate-400 h-5 my-0.5 mx-1 flex items-end justify-center text-[10px] text-slate-400 italic">cote réelle mm</div>
-                      </td>
-                    </tr>
-                  ))}
+                  {sec.groupesBarresNeuves.flatMap((g, i) => {
+                    const nbPieces = g.piecesInfo.length;
+                    return g.piecesInfo.map((p, pIdx) => (
+                      <tr key={`${i}-${pIdx}`} className="hover:bg-slate-50 border-b border-slate-200">
+                        {pIdx === 0 && (
+                          <>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-black text-sm sm:text-base text-emerald-800 border-r border-slate-300 font-mono bg-emerald-50/50 align-middle"
+                            >
+                              {g.quantite}
+                            </td>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-mono font-bold text-xs text-slate-700 border-r border-slate-300 bg-slate-50 align-middle"
+                            >
+                              Barre {Math.round(sec.barreLongueur || 6000)} mm
+                            </td>
+                          </>
+                        )}
+                        <td className="py-1.5 px-2 border-r border-slate-300 font-mono align-middle">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-black text-xs text-slate-950 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                              {p.repere}
+                            </span>
+                            {p.cmdTag && (
+                              <span className="text-[10px] bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold">
+                                Cmd {p.cmdTag}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-1.5 px-2 border-r border-slate-300 font-mono text-center align-middle">
+                          <span className="font-mono font-black text-xs sm:text-sm text-slate-950 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-300 inline-block shadow-xs">
+                            {p.longueur}
+                          </span>
+                        </td>
+                        {pIdx === 0 && (
+                          <>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-slate-900 border-r border-slate-300 align-middle"
+                            >
+                              {Math.round(g.chute)} mm
+                            </td>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-bold text-xs border-r border-slate-300 align-middle"
+                            >
+                              <span
+                                className={`px-1.5 py-0.5 rounded font-black text-[11px] inline-block ${
+                                  g.statut === 'STOCK'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : g.statut === 'Dechet'
+                                    ? 'bg-slate-100 text-slate-600'
+                                    : 'bg-rose-100 text-rose-800 border border-rose-300'
+                                }`}
+                              >
+                                {g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
+                              </span>
+                            </td>
+                            <td rowSpan={nbPieces} className="py-1 px-2 text-center align-middle">
+                              <div className="border-b border-dashed border-slate-400 h-5 my-0.5 mx-1 flex items-end justify-center text-[10px] text-slate-400 italic">
+                                cote réelle mm
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ));
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1314,57 +1384,84 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                 <thead className="bg-sky-50 text-slate-900 font-black border-b-2 border-slate-400 text-xs sm:text-sm">
                   <tr>
                     <th className="py-1.5 px-2 text-center w-[7%] border-r border-slate-300">Qté</th>
-                    <th className="py-1.5 px-2 text-center w-[14%] border-r border-slate-300 bg-sky-100 text-sky-950">Chute Prévue</th>
-                    <th className="py-1.5 px-2 border-r border-slate-300 w-[24%]">Repère(s) &amp; N° Cmd</th>
-                    <th className="py-1.5 px-2 border-r border-slate-300 w-[25%] text-center">Longueur(s) de Coupe</th>
-                    <th className="py-1.5 px-2 text-center w-[13%] border-r border-slate-300">Reste</th>
-                    <th className="py-1.5 px-2 text-center w-[17%]">Nouvelle Chute</th>
+                    <th className="py-1.5 px-2 text-center w-[13%] border-r border-slate-300 bg-sky-100 text-sky-950">Origine</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[25%] text-left">Repère(s) &amp; N° Cmd</th>
+                    <th className="py-1.5 px-2 border-r border-slate-300 w-[20%] text-center">Longueur(s) Coupe</th>
+                    <th className="py-1.5 px-2 text-center w-[11%] border-r border-slate-300">Reste</th>
+                    <th className="py-1.5 px-2 text-center w-[11%] border-r border-slate-300">Statut</th>
+                    <th className="py-1.5 px-2 text-center w-[13%]">Nouvelle Chute</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-300 bg-white">
-                  {sec.groupesChutesRecup.map((g, i) => (
-                    <tr key={i} className="hover:bg-sky-50/30">
-                      <td className="py-2 px-1 text-center font-black text-sm sm:text-base text-sky-800 border-r border-slate-300 font-mono bg-sky-50/50">
-                        {g.quantite}
-                      </td>
-                      <td className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-sky-950 border-r border-slate-300 bg-sky-100/50">
-                        {Math.round(g.support)} mm
-                      </td>
-                      <td colSpan={2} className="p-0 border-r border-slate-300">
-                        <table className="w-full border-collapse table-fixed">
-                          <tbody className="divide-y divide-slate-200">
-                            {g.piecesInfo.map((p, pIdx) => (
-                              <tr key={pIdx}>
-                                <td className="py-1.5 px-2 w-[49%] border-r border-slate-300 font-mono">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="font-black text-xs text-sky-950 bg-sky-100 px-2 py-0.5 rounded border border-sky-300">
-                                      {p.repere}
-                                    </span>
-                                    {p.cmdTag && (
-                                      <span className="text-[10px] bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold">
-                                        Cmd {p.cmdTag}
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="py-1.5 px-2 w-[51%] font-mono text-center">
-                                  <span className="font-mono font-black text-xs sm:text-sm text-slate-950 bg-sky-50 px-2.5 py-0.5 rounded border border-sky-300 inline-block shadow-xs">
-                                    {p.longueur}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </td>
-                      <td className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-slate-900 border-r border-slate-300">
-                        {Math.round(g.reste)} mm
-                      </td>
-                      <td className="py-1 px-2 text-center align-middle">
-                        <div className="border-b border-dashed border-slate-400 h-5 my-0.5 mx-1 flex items-end justify-center text-[10px] text-slate-400 italic">cote réelle mm</div>
-                      </td>
-                    </tr>
-                  ))}
+                  {sec.groupesChutesRecup.flatMap((g, i) => {
+                    const nbPieces = g.piecesInfo.length;
+                    const rMin = sec.article?.refus_min ?? 300;
+                    const isStocker = g.reste >= rMin;
+                    return g.piecesInfo.map((p, pIdx) => (
+                      <tr key={`${i}-${pIdx}`} className="hover:bg-sky-50/30 border-b border-slate-200">
+                        {pIdx === 0 && (
+                          <>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-black text-sm sm:text-base text-sky-800 border-r border-slate-300 font-mono bg-sky-50/50 align-middle"
+                            >
+                              {g.quantite}
+                            </td>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-sky-950 border-r border-slate-300 bg-sky-100/50 align-middle"
+                            >
+                              Chute {Math.round(g.support)} mm
+                            </td>
+                          </>
+                        )}
+                        <td className="py-1.5 px-2 border-r border-slate-300 font-mono align-middle">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-black text-xs text-sky-950 bg-sky-100 px-2 py-0.5 rounded border border-sky-300">
+                              {p.repere}
+                            </span>
+                            {p.cmdTag && (
+                              <span className="text-[10px] bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold">
+                                Cmd {p.cmdTag}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-1.5 px-2 border-r border-slate-300 font-mono text-center align-middle">
+                          <span className="font-mono font-black text-xs sm:text-sm text-slate-950 bg-sky-50 px-2.5 py-0.5 rounded border border-sky-300 inline-block shadow-xs">
+                            {p.longueur}
+                          </span>
+                        </td>
+                        {pIdx === 0 && (
+                          <>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-mono font-black text-xs sm:text-sm text-slate-900 border-r border-slate-300 align-middle"
+                            >
+                              {Math.round(g.reste)} mm
+                            </td>
+                            <td
+                              rowSpan={nbPieces}
+                              className="py-2 px-1 text-center font-bold text-xs border-r border-slate-300 align-middle"
+                            >
+                              <span
+                                className={`px-1.5 py-0.5 rounded font-black text-[11px] inline-block ${
+                                  isStocker ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {isStocker ? '📦 À STOCKER' : '🗑️ DÉCHET'}
+                              </span>
+                            </td>
+                            <td rowSpan={nbPieces} className="py-1 px-2 text-center align-middle">
+                              <div className="border-b border-dashed border-slate-400 h-5 my-0.5 mx-1 flex items-end justify-center text-[10px] text-slate-400 italic">
+                                cote réelle mm
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ));
+                  })}
                 </tbody>
               </table>
             </div>

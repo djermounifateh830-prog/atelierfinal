@@ -10,7 +10,8 @@ import {
   SuiviOF,
   MouvementStock,
   ClientCodification,
-  FicheTransfert
+  FicheTransfert,
+  FamilleProduit
 } from '../types/index';
 import {
   INITIAL_ARTICLES,
@@ -37,6 +38,7 @@ class AtelierDatabase {
     this.cleanCorruptedDesignations();
     this.seedIfEmpty();
     this.rebuildReservationsIfEmpty();
+    this.reparerFamillesOF();
   }
 
   private cleanCorruptedDesignations() {
@@ -722,6 +724,193 @@ class AtelierDatabase {
   // ==========================================
   // SUIVIS OF
   // ==========================================
+
+  /**
+   * Réparation automatique et intelligente des familles de produits pour les Ordres de Fabrication.
+   * Corrige les OF qui ont été enregistrés par défaut avec la famille 'CAISSON' alors qu'ils
+   * concernent des Tabliers/Volets, Moustiquaires ou Précadres.
+   */
+  reparerFamillesOF(): { repares: number } {
+    let repares = 0;
+    try {
+      const dossiers = this.getDossiers();
+      const rows = this.db.prepare('SELECT id, num_commande, nom_client, famille, titre_section, json_data FROM suivis_of').all() as any[];
+      if (!rows || rows.length === 0) return { repares: 0 };
+
+      const updateStmt = this.db.prepare(`
+        UPDATE suivis_of
+        SET famille = ?, json_data = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+
+      for (const r of rows) {
+        let ofObj: SuiviOF;
+        try {
+          ofObj = JSON.parse(r.json_data);
+        } catch {
+          continue;
+        }
+
+        const familleActuelle: FamilleProduit = ofObj.famille || r.famille;
+        let vraieFamille: FamilleProduit | null = null;
+
+        const numCmdClean = (ofObj.numCommande || r.num_commande || '').trim().toLowerCase();
+        const clientClean = (ofObj.nomClient || r.nom_client || '').trim().toLowerCase();
+
+        // 1. Croisement prioritaire avec le dossier de commande correspondant
+        const dossierAssocie = dossiers.find(d => {
+          const dRef = (d.refCommande || '').trim().toLowerCase();
+          const dNumTab = (d.numCommandeTablier || '').trim().toLowerCase();
+          const dNumMstq = (d.numCommandeMoustiquaire || '').trim().toLowerCase();
+          const dNumCais = (d.numCommandeCaisson || '').trim().toLowerCase();
+          const dNumPrc = (d.numCommandePrecadre || '').trim().toLowerCase();
+          const dClient = (d.nomClientFinal || '').trim().toLowerCase();
+
+          const matchesRef = numCmdClean && (
+            dRef === numCmdClean ||
+            dNumTab === numCmdClean ||
+            dNumMstq === numCmdClean ||
+            dNumCais === numCmdClean ||
+            dNumPrc === numCmdClean ||
+            (dRef.length > 2 && numCmdClean.includes(dRef)) ||
+            (numCmdClean.length > 2 && dRef.includes(numCmdClean))
+          );
+
+          const matchesClient = clientClean && dClient && (
+            dClient === clientClean ||
+            dClient.includes(clientClean) ||
+            clientClean.includes(dClient)
+          );
+
+          return matchesRef || matchesClient;
+        });
+
+        if (dossierAssocie) {
+          const hasTab = (dossierAssocie.articlesTabliers || []).length > 0;
+          const hasMstq = (dossierAssocie.articlesMoustiquaires || []).length > 0;
+          const hasPrc = (dossierAssocie.articlesPrecadres || []).length > 0;
+          const hasCais = (dossierAssocie.articlesCaissons || []).length > 0;
+
+          if (hasTab && !hasCais && !hasMstq && !hasPrc) {
+            vraieFamille = 'TABLIER';
+          } else if (hasMstq && !hasCais && !hasTab && !hasPrc) {
+            vraieFamille = 'MOUSTIQUAIRE';
+          } else if (hasPrc && !hasCais && !hasTab && !hasMstq) {
+            vraieFamille = 'PRECADRE';
+          } else if (hasCais && !hasTab && !hasMstq && !hasPrc) {
+            vraieFamille = 'CAISSON';
+          }
+        }
+
+        // 2. Si pas déduit par le dossier, inspecter les lignes de coupe débit (lignesRetour)
+        if (!vraieFamille) {
+          const lignes = ofObj.lignesRetour || [];
+          const hasTBL = lignes.some((l: any) => {
+            const code = (l.articleCode || '').toUpperCase();
+            const des = (l.piecesInfoStr || l.designation || '').toUpperCase();
+            const label = (l.repere || l.labelPiece || '').toUpperCase();
+            return (
+              code.includes('ART004') ||
+              des.includes('TBL') ||
+              des.includes('LAME') ||
+              des.includes('TABLIER') ||
+              des.includes('VOLET') ||
+              des.includes('COULISSE') ||
+              label.startsWith('SA-') ||
+              label.startsWith('LF-') ||
+              label.startsWith('TAB-') ||
+              label.includes('LAME')
+            );
+          });
+
+          const hasMSTQ = lignes.some((l: any) => {
+            const code = (l.articleCode || '').toUpperCase();
+            const des = (l.piecesInfoStr || l.designation || '').toUpperCase();
+            const label = (l.repere || l.labelPiece || '').toUpperCase();
+            return (
+              code.includes('ART005') ||
+              des.includes('MSTQ') ||
+              des.includes('MAILLE') ||
+              des.includes('MOUSTIQUAIRE') ||
+              des.includes('CADRE') ||
+              label.startsWith('HA-') ||
+              label.startsWith('HB-') ||
+              label.startsWith('LA-') ||
+              label.startsWith('LB-') ||
+              label.startsWith('MSTQ-') ||
+              label.startsWith('BI-') ||
+              label.startsWith('H') ||
+              label.includes('CADRE')
+            );
+          }) || (ofObj.chutesMailleReservees && ofObj.chutesMailleReservees.length > 0);
+
+          const hasPRC = lignes.some((l: any) => {
+            const code = (l.articleCode || '').toUpperCase();
+            const des = (l.piecesInfoStr || l.designation || '').toUpperCase();
+            const label = (l.repere || l.labelPiece || '').toUpperCase();
+            return (
+              code.includes('ART007') ||
+              des.includes('PRC') ||
+              des.includes('PRÉCADRE') ||
+              des.includes('PRECADRE') ||
+              label.includes('PRC') ||
+              label.includes('PRECADRE') ||
+              label.startsWith('1R')
+            );
+          });
+
+          const hasCAIS = lignes.some((l: any) => {
+            const des = (l.piecesInfoStr || l.designation || '').toUpperCase();
+            const label = (l.repere || l.labelPiece || '').toUpperCase();
+            return (
+              des.includes('CT SOMO') ||
+              des.includes('CAISSON') ||
+              des.includes('SOUS-FACE') ||
+              des.includes('SF ') ||
+              label.startsWith('CT-') ||
+              label.startsWith('SF-')
+            );
+          });
+
+          if (hasTBL && !hasMSTQ && !hasPRC && !hasCAIS) vraieFamille = 'TABLIER';
+          else if (hasMSTQ && !hasTBL && !hasPRC && !hasCAIS) vraieFamille = 'MOUSTIQUAIRE';
+          else if (hasPRC && !hasTBL && !hasMSTQ && !hasCAIS) vraieFamille = 'PRECADRE';
+          else if (hasCAIS && !hasTBL && !hasMSTQ && !hasPRC) vraieFamille = 'CAISSON';
+        }
+
+        // 3. Si toujours pas résolu, inspecter les titres et les préfixes de codification
+        if (!vraieFamille) {
+          const cmdUpper = (ofObj.numCommande || r.num_commande || '').toUpperCase();
+          const titreUpper = (ofObj.titreSection || r.titre_section || '').toUpperCase();
+
+          if (cmdUpper.startsWith('SA-') || titreUpper.includes('TABLIER') || titreUpper.includes('VOLET') || titreUpper.includes('LAME')) {
+            vraieFamille = 'TABLIER';
+          } else if (cmdUpper.startsWith('SC-') || cmdUpper.startsWith('D-') || titreUpper.includes('MOUSTIQUAIRE') || titreUpper.includes('MSTQ')) {
+            vraieFamille = 'MOUSTIQUAIRE';
+          } else if (cmdUpper.startsWith('1R') || titreUpper.includes('PRÉCADRE') || titreUpper.includes('PRECADRE')) {
+            vraieFamille = 'PRECADRE';
+          } else if (cmdUpper.startsWith('CT-') || cmdUpper.startsWith('A-') || titreUpper.includes('CAISSON') || titreUpper.includes('SOUS-FACE')) {
+            vraieFamille = 'CAISSON';
+          }
+        }
+
+        // 4. Si une vraie famille différente de 'CAISSON' (ou différente de la famille stockée) est détectée
+        if (vraieFamille && vraieFamille !== familleActuelle) {
+          ofObj.famille = vraieFamille;
+          updateStmt.run(vraieFamille, JSON.stringify(ofObj), r.id);
+          repares++;
+        }
+      }
+
+      if (repares > 0) {
+        console.log(`[AtelierDB] ${repares} ordre(s) de fabrication réparé(s) automatiquement vers leur véritable famille de produit.`);
+      }
+    } catch (err) {
+      console.warn('[AtelierDB] Warning lors de la réparation des familles OF:', err);
+    }
+    return { repares };
+  }
+
   getSuivisOF(): SuiviOF[] {
     const rows = this.db.prepare('SELECT json_data FROM suivis_of ORDER BY updated_at DESC').all() as any[];
     return rows.map(r => {

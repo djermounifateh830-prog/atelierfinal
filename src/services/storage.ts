@@ -688,9 +688,26 @@ export class StorageService {
     return { chutesBarres: mergedBarres, chutesMaille: mergedMaille };
   }
 
-  // =========================================================================
+  // ==========================================
   // SUIVIS OF
-  // =========================================================================
+  // ==========================================
+
+  static async reparerFamillesOF(): Promise<{ repares: number; data?: SuiviOF[] }> {
+    try {
+      const response = await this.request('/api/of/reparer-familles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const res = await response.json();
+      if (res?.repares > 0) {
+        logger.sqlite('Réparation OF', `${res.repares} ordre(s) de fabrication réparé(s) vers leur vraie famille (Tablier, Moustiquaire...).`);
+      }
+      return { repares: res?.repares || 0, data: res?.data };
+    } catch (e: any) {
+      console.error('Erreur réparation familles OF:', e);
+      return { repares: 0 };
+    }
+  }
 
   static async upsertSuiviOF(suivi: SuiviOF): Promise<void> {
     try {
