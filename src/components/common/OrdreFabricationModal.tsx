@@ -634,25 +634,25 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       return g.piecesInfo.map((p, pIdx) => `
         <tr style="border-bottom:1px solid #cbd5e1;">
           ${pIdx === 0 ? `
-            <td rowspan="${nbPieces}" style="width:7%;text-align:center;font-weight:900;color:#047857;font-size:13px;background:#f0fdf4;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${g.quantite}</td>
-            <td rowspan="${nbPieces}" style="width:13%;text-align:center;font-family:Consolas,monospace;font-weight:bold;font-size:11px;color:#334155;background:#f8fafc;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">Barre ${Math.round(sec.barreLongueur || 6000)} mm</td>
+            <td rowspan="${nbPieces}" style="width:7%;text-align:center;font-weight:900;color:#047857;font-size:15px;background:#f0fdf4;padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">${g.quantite}</td>
+            <td rowspan="${nbPieces}" style="width:13%;text-align:center;font-family:Consolas,monospace;font-weight:bold;font-size:13px;color:#334155;background:#f8fafc;padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">Barre ${Math.round(sec.barreLongueur || 6000)} mm</td>
           ` : ''}
-          <td style="width:25%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border-right:1px solid #cbd5e1;vertical-align:middle;">
-            <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
-              <strong style="font-size:11px;color:#0f172a;background:#fef3c7;padding:1px 5px;border-radius:3px;border:1px solid #fde68a;">${p.repere}</strong>
-              ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
+          <td style="width:25%;font-family:Consolas,monospace;padding:4px 6px;border-right:1px solid #cbd5e1;vertical-align:middle;">
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+              <strong style="font-size:13px;font-weight:900;color:#0f172a;background:#fef3c7;padding:2px 6px;border-radius:4px;border:1.5px solid #fde68a;">${p.repere}</strong>
+              ${p.cmdTag ? `<span style="font-size:11px;background:#e2e8f0;color:#1e293b;padding:1px 4px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
             </div>
           </td>
-          <td style="width:20%;font-family:Consolas,monospace;font-weight:900;font-size:12px;color:#0f172a;padding:3px 5px;vertical-align:middle;text-align:center;border-right:1px solid #64748b;">
-            <span style="background:#f1f5f9;border:1px solid #cbd5e1;padding:1px 6px;border-radius:3px;display:inline-block;">${p.longueur}</span>
+          <td style="width:20%;font-family:Consolas,monospace;font-weight:900;padding:4px 6px;vertical-align:middle;text-align:center;border-right:1px solid #64748b;">
+            <span style="background:#f1f5f9;border:1.5px solid #64748b;padding:2px 8px;border-radius:4px;display:inline-block;font-size:16px;color:#000;">${p.longueur} mm</span>
           </td>
           ${pIdx === 0 ? `
-            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:11px;color:#1e293b;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${Math.round(g.chute)} mm</td>
-            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-size:10px;color:${g.statut === 'STOCK' ? '#047857' : g.statut === 'Dechet' ? '#64748b' : '#b91c1c'};padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:13px;color:#1e293b;padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">${Math.round(g.chute)} mm</td>
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-size:12px;color:${g.statut === 'STOCK' ? '#047857' : g.statut === 'Dechet' ? '#64748b' : '#b91c1c'};padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">
               ${g.statut === 'STOCK' ? '📦 À STOCKER' : g.statut === 'Dechet' ? '🗑️ DÉCHET' : '⚠️ SACRIFIER'}
             </td>
-            <td rowspan="${nbPieces}" style="width:13%;padding:3px 2px;vertical-align:middle;text-align:center;">
-              <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
+            <td rowspan="${nbPieces}" style="width:13%;padding:4px 2px;vertical-align:middle;text-align:center;">
+              <div style="border-bottom:1px dashed #94a3b8;height:18px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:11px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
             </td>
           ` : ''}
         </tr>
@@ -666,25 +666,25 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
       return g.piecesInfo.map((p, pIdx) => `
         <tr style="border-bottom:1px solid #cbd5e1;">
           ${pIdx === 0 ? `
-            <td rowspan="${nbPieces}" style="width:7%;text-align:center;font-weight:900;color:#1d4ed8;font-size:13px;background:#eff6ff;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${g.quantite}</td>
-            <td rowspan="${nbPieces}" style="width:13%;text-align:center;font-family:Consolas,monospace;font-weight:900;font-size:11px;color:#1d4ed8;background:#eff6ff;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">Chute ${Math.round(g.support)} mm</td>
+            <td rowspan="${nbPieces}" style="width:7%;text-align:center;font-weight:900;color:#1d4ed8;font-size:15px;background:#eff6ff;padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">${g.quantite}</td>
+            <td rowspan="${nbPieces}" style="width:13%;text-align:center;font-family:Consolas,monospace;font-weight:900;font-size:13px;color:#1d4ed8;background:#eff6ff;padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">Chute ${Math.round(g.support)} mm</td>
           ` : ''}
-          <td style="width:25%;font-family:Consolas,monospace;font-size:11px;padding:3px 5px;border-right:1px solid #cbd5e1;vertical-align:middle;">
-            <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
-              <strong style="font-size:11px;color:#0f172a;background:#e0f2fe;padding:1px 5px;border-radius:3px;border:1px solid #bae6fd;">${p.repere}</strong>
-              ${p.cmdTag ? `<span style="font-size:9px;background:#e2e8f0;color:#334155;padding:1px 3px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
+          <td style="width:25%;font-family:Consolas,monospace;padding:4px 6px;border-right:1px solid #cbd5e1;vertical-align:middle;">
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+              <strong style="font-size:13px;font-weight:900;color:#0f172a;background:#e0f2fe;padding:2px 6px;border-radius:4px;border:1.5px solid #bae6fd;">${p.repere}</strong>
+              ${p.cmdTag ? `<span style="font-size:11px;background:#e2e8f0;color:#1e293b;padding:1px 4px;border-radius:3px;font-weight:bold;">[Cmd ${p.cmdTag}]</span>` : ''}
             </div>
           </td>
-          <td style="width:20%;font-family:Consolas,monospace;font-weight:900;font-size:12px;color:#0f172a;padding:3px 5px;vertical-align:middle;text-align:center;border-right:1px solid #64748b;">
-            <span style="background:#f1f5f9;border:1px solid #cbd5e1;padding:1px 6px;border-radius:3px;display:inline-block;">${p.longueur}</span>
+          <td style="width:20%;font-family:Consolas,monospace;font-weight:900;padding:4px 6px;vertical-align:middle;text-align:center;border-right:1px solid #64748b;">
+            <span style="background:#f1f5f9;border:1.5px solid #64748b;padding:2px 8px;border-radius:4px;display:inline-block;font-size:16px;color:#000;">${p.longueur} mm</span>
           </td>
           ${pIdx === 0 ? `
-            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:11px;color:#1e293b;padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">${Math.round(g.reste)} mm</td>
-            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-size:10px;color:${chuteStatutColor};padding:3px 2px;vertical-align:middle;border-right:1px solid #64748b;">
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-family:Consolas,monospace;font-size:13px;color:#1e293b;padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">${Math.round(g.reste)} mm</td>
+            <td rowspan="${nbPieces}" style="width:11%;text-align:center;font-weight:900;font-size:12px;color:${chuteStatutColor};padding:4px 2px;vertical-align:middle;border-right:1px solid #64748b;">
               ${chuteStatut}
             </td>
-            <td rowspan="${nbPieces}" style="width:13%;padding:3px 2px;vertical-align:middle;text-align:center;">
-              <div style="border-bottom:1px dashed #94a3b8;height:16px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
+            <td rowspan="${nbPieces}" style="width:13%;padding:4px 2px;vertical-align:middle;text-align:center;">
+              <div style="border-bottom:1px dashed #94a3b8;height:18px;margin:2px 4px;display:flex;align-items:flex-end;justify-content:center;font-size:11px;color:#94a3b8;font-style:italic;">cote réelle mm</div>
             </td>
           ` : ''}
         </tr>
@@ -692,41 +692,59 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     }).join('');
 
     return `
-    <div class="section-container" style="page-break-inside:avoid;margin-bottom:10px;">
-      <div style="background:#f1f5f9;border:1.5px solid #0f172a;padding:4px 8px;font-weight:900;font-size:12px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+    <div class="section-container" style="page-break-inside:avoid;margin-bottom:12px;">
+      <div style="background:#f1f5f9;border:2px solid #0f172a;padding:6px 10px;font-weight:900;font-size:14px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
         <span>${sec.titre}</span>
-        ${conditionsHtml ? `<span style="font-size:11px;color:#334155;font-weight:bold;">${conditionsHtml}</span>` : ''}
+        ${conditionsHtml ? `<span style="font-size:12px;color:#334155;font-weight:bold;">${conditionsHtml}</span>` : ''}
       </div>
       ${joueHtmlNotice}
       ${sec.groupesBarresNeuves.length > 0 ? `
-      <div style="font-size:11px;font-weight:900;margin:4px 0;border-left:3px solid #047857;padding-left:6px;text-transform:uppercase;color:#065f46;">
+      <div style="font-size:13px;font-weight:900;margin:6px 0 4px 0;border-left:4px solid #047857;padding-left:8px;text-transform:uppercase;color:#065f46;">
         COUPES SUR BARRES NEUVES (${sec.resultat.total_barres_neuves} barre(s) — Rendement : ${sec.resultat.taux_rendement}%)
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;border:1px solid #64748b;">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px;table-layout:fixed;border:1.5px solid #64748b;">
+        <colgroup>
+          <col style="width:7%;">
+          <col style="width:13%;">
+          <col style="width:25%;">
+          <col style="width:20%;">
+          <col style="width:11%;">
+          <col style="width:11%;">
+          <col style="width:13%;">
+        </colgroup>
         <thead><tr style="background:#f8fafc;border-bottom:2px solid #64748b;">
-          <th style="width:7%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Qté</th>
-          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Origine</th>
-          <th style="width:25%;font-size:11px;padding:3px 5px;border-right:1px solid #64748b;text-align:left;">Repère(s) &amp; N° Cmd</th>
-          <th style="width:20%;text-align:center;font-size:11px;padding:3px 4px;border-right:1px solid #64748b;">Longueur(s) Coupe</th>
-          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Reste</th>
-          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Statut</th>
-          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;">Nouvelle Chute</th>
+          <th style="width:7%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Qté</th>
+          <th style="width:13%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Origine</th>
+          <th style="width:25%;font-size:12px;font-weight:900;padding:5px 6px;border-right:1px solid #64748b;text-align:left;">Repère(s) &amp; N° Cmd</th>
+          <th style="width:20%;text-align:center;font-size:12px;font-weight:900;padding:5px 4px;border-right:1px solid #64748b;">Longueur(s) Coupe</th>
+          <th style="width:11%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Reste</th>
+          <th style="width:11%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Statut</th>
+          <th style="width:13%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;">Nouvelle Chute</th>
         </tr></thead>
         <tbody>${barresHTML}</tbody>
       </table>` : ''}
       ${sec.groupesChutesRecup.length > 0 ? `
-      <div style="font-size:11px;font-weight:900;margin:4px 0;border-left:3px solid #1d4ed8;padding-left:6px;text-transform:uppercase;color:#1e40af;">
+      <div style="font-size:13px;font-weight:900;margin:6px 0 4px 0;border-left:4px solid #1d4ed8;padding-left:8px;text-transform:uppercase;color:#1e40af;">
         COUPES SUR CHUTES DU STOCK (${sec.resultat.total_chutes_recyclees} chute(s))
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;table-layout:fixed;border:1px solid #64748b;">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px;table-layout:fixed;border:1.5px solid #64748b;">
+        <colgroup>
+          <col style="width:7%;">
+          <col style="width:13%;">
+          <col style="width:25%;">
+          <col style="width:20%;">
+          <col style="width:11%;">
+          <col style="width:11%;">
+          <col style="width:13%;">
+        </colgroup>
         <thead><tr style="background:#eff6ff;border-bottom:2px solid #64748b;">
-          <th style="width:7%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Qté</th>
-          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Origine</th>
-          <th style="width:25%;font-size:11px;padding:3px 5px;border-right:1px solid #64748b;text-align:left;">Repère(s) &amp; N° Cmd</th>
-          <th style="width:20%;text-align:center;font-size:11px;padding:3px 4px;border-right:1px solid #64748b;">Longueur(s) Coupe</th>
-          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Reste</th>
-          <th style="width:11%;text-align:center;font-size:11px;padding:3px 2px;border-right:1px solid #64748b;">Statut</th>
-          <th style="width:13%;text-align:center;font-size:11px;padding:3px 2px;">Nouvelle Chute</th>
+          <th style="width:7%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Qté</th>
+          <th style="width:13%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Origine</th>
+          <th style="width:25%;font-size:12px;font-weight:900;padding:5px 6px;border-right:1px solid #64748b;text-align:left;">Repère(s) &amp; N° Cmd</th>
+          <th style="width:20%;text-align:center;font-size:12px;font-weight:900;padding:5px 4px;border-right:1px solid #64748b;">Longueur(s) Coupe</th>
+          <th style="width:11%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Reste</th>
+          <th style="width:11%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;border-right:1px solid #64748b;">Statut</th>
+          <th style="width:13%;text-align:center;font-size:12px;font-weight:900;padding:5px 2px;">Nouvelle Chute</th>
         </tr></thead>
         <tbody>${chutesHTML}</tbody>
       </table>` : ''}
@@ -738,55 +756,66 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     const matieresNeuvesFiltrees = syntheseMatieres.filter(m => m.nbBarresNeuves > 0);
     const matieresNeuvesHTML = matieresNeuvesFiltrees.length > 0 ? matieresNeuvesFiltrees.map(m => `
       <tr>
-        <td style="font-weight:900;color:#1e3a8a;font-size:12px;padding:4px 6px;">${m.famille}</td>
-        <td style="font-size:12px;font-weight:bold;padding:4px 6px;">${m.designation}</td>
-        <td style="text-align:center;font-family:Consolas,monospace;font-size:13px;font-weight:900;padding:4px 6px;">${m.longueurBarre} mm</td>
-        <td style="text-align:center;font-weight:900;color:#047857;font-size:15px;background:#f0fdf4;padding:4px 6px;">${m.nbBarresNeuves} barre(s)</td>
-        <td style="text-align:center;font-weight:900;font-size:13px;font-family:Consolas,monospace;padding:4px 6px;">${m.metrageBarresM.toFixed(1)} m</td>
-        <td style="text-align:center;font-weight:bold;color:#64748b;font-size:12px;padding:4px 6px;">[ &nbsp; ] Prélevé</td>
-      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#64748b;font-style:italic;padding:8px;font-size:12px;">Aucune barre neuve à prélever (fabrication 100% sur chutes du stock).</td></tr>`;
+        <td style="font-weight:900;color:#1e3a8a;font-size:13px;padding:5px 6px;">${m.famille}</td>
+        <td style="font-size:13px;font-weight:bold;padding:5px 6px;">${m.designation}</td>
+        <td style="text-align:center;font-family:Consolas,monospace;font-size:14px;font-weight:900;padding:5px 6px;">${m.longueurBarre} mm</td>
+        <td style="text-align:center;font-weight:900;color:#047857;font-size:16px;background:#f0fdf4;padding:5px 6px;">${m.nbBarresNeuves} barre(s)</td>
+        <td style="text-align:center;font-weight:900;font-size:14px;font-family:Consolas,monospace;padding:5px 6px;">${m.metrageBarresM.toFixed(1)} m</td>
+        <td style="text-align:center;font-weight:bold;color:#64748b;font-size:13px;padding:5px 6px;">[ &nbsp; ] Prélevé</td>
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#64748b;font-style:italic;padding:10px;font-size:13px;">Aucune barre neuve à prélever (fabrication 100% sur chutes du stock).</td></tr>`;
 
     const chutesADestoquer = syntheseMatieres.flatMap(m => m.chutes.map(c => ({ ...c, codeArt: m.codeArt, designation: m.designation, famille: m.famille })));
     const chutesDestoquerHTML = chutesADestoquer.length > 0 ? chutesADestoquer.map(c => `
       <tr>
-        <td style="font-weight:900;color:#1e3a8a;font-size:12px;padding:4px 6px;">${c.famille}</td>
-        <td style="font-size:12px;font-weight:bold;padding:4px 6px;">${c.designation}</td>
-        <td style="text-align:center;font-family:Consolas,monospace;font-weight:900;color:#1d4ed8;font-size:14px;background:#eff6ff;padding:4px 6px;">${c.longueurDepart} mm</td>
-        <td style="text-align:center;font-weight:900;font-size:14px;padding:4px 6px;">×${c.quantite}</td>
-        <td style="text-align:center;font-family:Consolas,monospace;font-size:13px;font-weight:900;padding:4px 6px;">${c.restePrevu} mm (${c.statutReste})</td>
-        <td style="text-align:center;font-weight:bold;color:#64748b;font-size:12px;padding:4px 6px;">[ &nbsp; ] Déstocké</td>
-      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#64748b;font-style:italic;padding:8px;font-size:12px;">Aucune chute du stock à prélever (100% barres neuves).</td></tr>`;
+        <td style="font-weight:900;color:#1e3a8a;font-size:13px;padding:5px 6px;">${c.famille}</td>
+        <td style="font-size:13px;font-weight:bold;padding:5px 6px;">${c.designation}</td>
+        <td style="text-align:center;font-family:Consolas,monospace;font-weight:900;color:#1d4ed8;font-size:15px;background:#eff6ff;padding:5px 6px;">${c.longueurDepart} mm</td>
+        <td style="text-align:center;font-weight:900;font-size:15px;padding:5px 6px;">×${c.quantite}</td>
+        <td style="text-align:center;font-family:Consolas,monospace;font-size:14px;font-weight:900;padding:5px 6px;">${c.restePrevu} mm (${c.statutReste})</td>
+        <td style="text-align:center;font-weight:bold;color:#64748b;font-size:13px;padding:5px 6px;">[ &nbsp; ] Déstocké</td>
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#64748b;font-style:italic;padding:10px;font-size:13px;">Aucune chute du stock à prélever (100% barres neuves).</td></tr>`;
 
     // 1.c Tableau Accessoires & Joues
     const accessoiresHTML = syntheseAccessoires.length > 0 ? syntheseAccessoires.map(a => `
       <tr>
-        <td style="font-weight:900;color:#92400e;font-size:12px;padding:4px 6px;background:#fffbeb;">${a.famille}</td>
-        <td style="font-family:Consolas,monospace;font-weight:900;color:#0f172a;font-size:12px;padding:4px 6px;">${a.codeArt}</td>
-        <td style="font-size:12px;font-weight:900;padding:4px 6px;color:#0f172a;">${a.designation}</td>
-        <td style="font-size:11px;color:#475569;padding:4px 6px;">${a.regleCalcul} (${a.detailPieces})</td>
-        <td style="text-align:center;font-weight:900;color:#92400e;font-size:14px;background:#fef3c7;padding:4px 6px;font-family:Consolas,monospace;">${a.quantiteRequise} pcs</td>
-        <td style="text-align:center;font-weight:bold;color:#64748b;font-size:12px;padding:4px 6px;">[ &nbsp; ] Préparé</td>
-      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#64748b;font-style:italic;padding:8px;font-size:12px;">Aucun accessoire ou joue requis pour ce dossier.</td></tr>`;
+        <td style="font-weight:900;color:#92400e;font-size:13px;padding:5px 6px;background:#fffbeb;">${a.famille}</td>
+        <td style="font-family:Consolas,monospace;font-weight:900;color:#0f172a;font-size:13px;padding:5px 6px;">${a.codeArt}</td>
+        <td style="font-size:13px;font-weight:900;padding:5px 6px;color:#0f172a;">${a.designation}</td>
+        <td style="font-size:12px;color:#475569;padding:5px 6px;">${a.regleCalcul} (${a.detailPieces})</td>
+        <td style="text-align:center;font-weight:900;color:#92400e;font-size:15px;background:#fef3c7;padding:5px 6px;font-family:Consolas,monospace;">${a.quantiteRequise} pcs</td>
+        <td style="text-align:center;font-weight:bold;color:#64748b;font-size:13px;padding:5px 6px;">[ &nbsp; ] Préparé</td>
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#64748b;font-style:italic;padding:10px;font-size:13px;">Aucun accessoire ou joue requis pour ce dossier.</td></tr>`;
 
     // 1.d Façonnage Toile Plissée / Maille MSTQ (Placée avec les préparations matière première)
     const mstqToileItems = (lignesMoustiquaires || []).filter(m => m.typeFabrication !== 'PROFILES_SEULS');
     const toilePlisseeHTML = mstqToileItems.length > 0 ? `
-      <div style="margin-top:10px;margin-bottom:10px;page-break-inside:avoid;">
-        <div style="font-weight:900;font-size:12px;margin:6px 0 4px 0;text-transform:uppercase;color:#78350f;background:#fef3c7;border:1.5px solid #b45309;padding:5px 8px;">
+      <div style="margin-top:12px;margin-bottom:12px;page-break-inside:avoid;">
+        <div style="font-weight:900;font-size:13px;margin:8px 0 4px 0;text-transform:uppercase;color:#78350f;background:#fef3c7;border:2px solid #b45309;padding:6px 10px;">
           🕸️ D. Toile Plissée / Maille MSTQ (Débit Toile, Guidage, Plis & Cordes - Matière Première)
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px;border:1.5px solid #64748b;margin-bottom:6px;table-layout:fixed;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;border:1.5px solid #64748b;margin-bottom:8px;table-layout:fixed;">
+          <colgroup>
+            <col style="width:8%;">
+            <col style="width:14%;">
+            <col style="width:11%;">
+            <col style="width:13%;">
+            <col style="width:9%;">
+            <col style="width:16%;">
+            <col style="width:8%;">
+            <col style="width:10%;">
+            <col style="width:11%;">
+          </colgroup>
           <thead>
             <tr style="background:#f1f5f9;font-weight:900;border-bottom:1.5px solid #64748b;">
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:8%;">Repère</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;width:14%;">Dim. Finie (L×H)</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;width:11%;">Ouverture</th>
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;background:#fffbeb;width:13%;">Coupe Fixe Maille</th>
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:9%;">Nb Plis</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;width:15%;">Guidage & Cordes</th>
-              <th style="padding:4px;text-align:center;border-right:1px solid #cbd5e1;width:8%;">Surface</th>
-              <th style="padding:4px;border-right:1px solid #cbd5e1;width:10%;">Article</th>
-              <th style="padding:4px;width:12%;">Source Toile (Chute / Stock)</th>
+              <th style="padding:5px 4px;text-align:center;border-right:1px solid #cbd5e1;width:8%;">Repère</th>
+              <th style="padding:5px 4px;border-right:1px solid #cbd5e1;width:14%;">Dim. Finie (L×H)</th>
+              <th style="padding:5px 4px;border-right:1px solid #cbd5e1;width:11%;">Ouverture</th>
+              <th style="padding:5px 4px;text-align:center;border-right:1px solid #cbd5e1;background:#fffbeb;width:13%;">Coupe Fixe Maille</th>
+              <th style="padding:5px 4px;text-align:center;border-right:1px solid #cbd5e1;width:9%;">Nb Plis</th>
+              <th style="padding:5px 4px;border-right:1px solid #cbd5e1;width:16%;background:#faf5ff;color:#581c87;">Longueur Fil / Corde (Mètres)</th>
+              <th style="padding:5px 4px;text-align:center;border-right:1px solid #cbd5e1;width:8%;">Surface</th>
+              <th style="padding:5px 4px;border-right:1px solid #cbd5e1;width:10%;">Article</th>
+              <th style="padding:5px 4px;width:11%;">Source Toile</th>
             </tr>
           </thead>
           <tbody>
@@ -795,20 +824,23 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
               const resMstq = resultatsMaille[idx];
               const chute = resMstq?.chute_trouvee;
               const sourceHtml = chute
-                ? `<span style="background:#d1fae5;color:#065f46;padding:2px 5px;border-radius:3px;font-weight:bold;border:1px solid #6ee7b7;font-size:10px;">♻️ Chute (${chute.dimension_fixe}mm, ${chute.plis}p)</span>${resMstq.reste_plis !== undefined ? `<span style="font-size:10px;color:#047857;font-weight:bold;margin-left:4px;">Reste: ${resMstq.reste_plis}p</span>` : ''}`
-                : `<span style="background:#f1f5f9;color:#334155;padding:2px 5px;border-radius:3px;font-weight:bold;border:1px solid #cbd5e1;font-size:10px;">📦 Neuf (Coupe ${c.dimension_fixe_requise}mm)</span>`;
+                ? `<span style="background:#d1fae5;color:#065f46;padding:2px 5px;border-radius:3px;font-weight:bold;border:1px solid #6ee7b7;font-size:11px;">♻️ Chute (${chute.dimension_fixe}mm, ${chute.plis}p)</span>${resMstq.reste_plis !== undefined ? `<span style="font-size:11px;color:#047857;font-weight:bold;margin-left:4px;">Reste: ${resMstq.reste_plis}p</span>` : ''}`
+                : `<span style="background:#f1f5f9;color:#334155;padding:2px 5px;border-radius:3px;font-weight:bold;border:1px solid #cbd5e1;font-size:11px;">📦 Neuf (Coupe ${c.dimension_fixe_requise}mm)</span>`;
 
               return `
                 <tr style="border-bottom:1px solid #e2e8f0;background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-                  <td style="padding:4px;text-align:center;font-weight:900;color:#b45309;border-right:1px solid #cbd5e1;font-size:12px;">${m.repere}</td>
-                  <td style="padding:4px;font-weight:900;border-right:1px solid #cbd5e1;">${m.largeur} × ${m.hauteur} mm (×${m.quantite})</td>
-                  <td style="padding:4px;border-right:1px solid #cbd5e1;">${m.typeOuverture}</td>
-                  <td style="padding:4px;text-align:center;font-weight:900;background:#fffbeb;border-right:1px solid #cbd5e1;">${c.dimension_fixe_requise} mm (${c.dimension_fixe_est})</td>
-                  <td style="padding:4px;text-align:center;font-weight:900;color:#065f46;border-right:1px solid #cbd5e1;">${c.nb_plis_requis} plis</td>
-                  <td style="padding:4px;border-right:1px solid #cbd5e1;font-size:10px;">${c.nb_fils_guidage} fils · Corde: ${c.longueur_corde_totale_m}m</td>
-                  <td style="padding:4px;text-align:center;font-weight:bold;border-right:1px solid #cbd5e1;">${c.superficie_m2} m²</td>
-                  <td style="padding:4px;border-right:1px solid #cbd5e1;font-size:10px;">${m.articleDesignationMaille || 'MSTQ MAILLE 20mm'}</td>
-                  <td style="padding:4px;">${sourceHtml}</td>
+                  <td style="padding:5px 4px;text-align:center;font-weight:900;color:#b45309;border-right:1px solid #cbd5e1;font-size:13px;">${m.repere}</td>
+                  <td style="padding:5px 4px;font-weight:900;border-right:1px solid #cbd5e1;font-size:12px;">${m.largeur} × ${m.hauteur} mm (×${m.quantite})</td>
+                  <td style="padding:5px 4px;border-right:1px solid #cbd5e1;font-size:12px;">${m.typeOuverture}</td>
+                  <td style="padding:5px 4px;text-align:center;font-weight:900;background:#fffbeb;border-right:1px solid #cbd5e1;font-size:13px;">${c.dimension_fixe_requise} mm (${c.dimension_fixe_est})</td>
+                  <td style="padding:5px 4px;text-align:center;font-weight:900;color:#065f46;border-right:1px solid #cbd5e1;font-size:13px;">${c.nb_plis_requis} plis</td>
+                  <td style="padding:5px 4px;border-right:1px solid #cbd5e1;background:#faf5ff;">
+                    <div style="font-weight:900;color:#581c87;font-size:15px;font-family:Consolas,monospace;">${c.longueur_corde_totale_m} m <span style="font-size:12px;font-weight:bold;color:#4c1d95;">(${c.longueur_corde_totale_m} Mètres)</span></div>
+                    <div style="font-size:11px;color:#334155;margin-top:2px;"><strong style="color:#0f172a;">${c.nb_fils_guidage} fils</strong> · ${c.longueur_corde_unitaire_m} m / fil · entraxe ${(c.distance_cordes / 1000).toFixed(2)} m (${c.distance_cordes} mm)</div>
+                  </td>
+                  <td style="padding:5px 4px;text-align:center;font-weight:bold;border-right:1px solid #cbd5e1;font-size:12px;">${c.superficie_m2} m²</td>
+                  <td style="padding:5px 4px;border-right:1px solid #cbd5e1;font-size:11px;">${m.articleDesignationMaille || 'MSTQ MAILLE 20mm'}</td>
+                  <td style="padding:5px 4px;">${sourceHtml}</td>
                 </tr>
               `;
             }).join('')}
@@ -829,20 +861,21 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
   <meta charset="utf-8">
   <title>Ordre de Fabrication — ${cmdAffichee} — ${clientAffiche}</title>
   <style>
-    @page { size: A4 portrait; margin: 8mm 6mm 8mm 6mm; }
-    body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; background: #fff; font-size: 11px; }
+    @page { size: A4 portrait; margin: 8mm 8mm 8mm 8mm; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; background: #fff; font-size: 13px; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; border-bottom:2px solid #000; padding-bottom:4px; }
-    .header-left h1 { font-size:15px; font-weight:900; margin:0 0 2px 0; text-transform:uppercase; color:#0f172a; }
-    .header-left .meta { font-size:11px; color:#111; }
-    .logo-m { font-size:20px; font-weight:900; color:#1e3a8a; }
-    .logo-text { font-size:9px; font-weight:bold; letter-spacing:1px; color:#333; }
-    .client-info-bar { display:flex; justify-content:space-between; background:#f1f5f9; padding:5px 8px; border:1px solid #94a3b8; font-size:11px; margin-bottom:8px; font-weight:bold; }
+    .header-left h1 { font-size:16px; font-weight:900; margin:0 0 2px 0; text-transform:uppercase; color:#0f172a; }
+    .header-left .meta { font-size:12px; color:#111; }
+    .logo-m { font-size:22px; font-weight:900; color:#1e3a8a; }
+    .logo-text { font-size:10px; font-weight:bold; letter-spacing:1px; color:#333; }
+    .client-info-bar { display:flex; justify-content:space-between; background:#f1f5f9; padding:6px 10px; border:1px solid #94a3b8; font-size:12px; margin-bottom:8px; font-weight:bold; }
     .page-break { page-break-before: always; break-before: page; margin-top: 10px; }
-    .famille-header { background: #0f172a; color: #fff; padding: 5px 10px; font-size: 13px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-    table { width:100%; border-collapse:collapse; margin-bottom:8px; table-layout:fixed; }
-    th, td { border:1px solid #64748b; padding:4px 5px; text-align:left; vertical-align:middle; font-size: 11px; box-sizing:border-box; word-break:break-word; overflow-wrap:break-word; }
-    th { background:#f1f5f9; font-weight:900; font-size:11px; text-transform:uppercase; color:#0f172a; }
-    .global-footer-box { border:2px solid #000; padding:6px 10px; display:flex; justify-content:space-around; font-size:11px; font-weight:900; margin-top:8px; background:#f8fafc; page-break-inside:avoid; flex-wrap:wrap; gap:6px; }
+    .famille-header { background: #0f172a; color: #fff; padding: 6px 12px; font-size: 14px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    table { width:100% !important; border-collapse:collapse !important; margin-bottom:10px !important; table-layout:fixed !important; }
+    th, td { border:1px solid #64748b !important; padding:5px 6px !important; text-align:left; vertical-align:middle; font-size: 12px; box-sizing:border-box !important; word-break:break-word !important; overflow-wrap:break-word !important; }
+    th { background:#f1f5f9 !important; font-weight:900 !important; font-size:12px !important; text-transform:uppercase; color:#0f172a !important; }
+    .global-footer-box { border:2px solid #000; padding:8px 12px; display:flex; justify-content:space-around; font-size:12px; font-weight:900; margin-top:10px; background:#f8fafc; page-break-inside:avoid; flex-wrap:wrap; gap:8px; }
   </style>
 </head>
 <body>
@@ -869,8 +902,16 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     <span style="font-size:11px;font-weight:normal;opacity:0.9;">Prélèvement Profilés, Chutes, Joues &amp; Toile</span>
   </div>
 
-  <div style="font-weight:900;font-size:12px;margin:4px 0;text-transform:uppercase;color:#047857;">A. Barres Neuves à sortir du Magasin :</div>
+  <div style="font-weight:900;font-size:13px;margin:6px 0 4px 0;text-transform:uppercase;color:#047857;">A. Barres Neuves à sortir du Magasin :</div>
   <table style="table-layout:fixed;width:100%;">
+    <colgroup>
+      <col style="width:14%;">
+      <col style="width:36%;">
+      <col style="width:13%;">
+      <col style="width:13%;">
+      <col style="width:12%;">
+      <col style="width:12%;">
+    </colgroup>
     <thead><tr>
       <th style="width:14%;">Famille</th>
       <th style="width:36%;">Désignation Profilé</th>
@@ -882,8 +923,16 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     <tbody>${matieresNeuvesHTML}</tbody>
   </table>
 
-  <div style="font-weight:900;font-size:12px;margin:8px 0 4px 0;text-transform:uppercase;color:#1d4ed8;">B. Chutes Récupérées à Déstocker des Casiers :</div>
+  <div style="font-weight:900;font-size:13px;margin:10px 0 4px 0;text-transform:uppercase;color:#1d4ed8;">B. Chutes Récupérées à Déstocker des Casiers :</div>
   <table style="table-layout:fixed;width:100%;">
+    <colgroup>
+      <col style="width:14%;">
+      <col style="width:36%;">
+      <col style="width:15%;">
+      <col style="width:9%;">
+      <col style="width:14%;">
+      <col style="width:12%;">
+    </colgroup>
     <thead><tr>
       <th style="width:14%;">Famille</th>
       <th style="width:36%;">Désignation Profilé</th>
@@ -895,8 +944,16 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
     <tbody>${chutesDestoquerHTML}</tbody>
   </table>
 
-  <div style="font-weight:900;font-size:12px;margin:8px 0 4px 0;text-transform:uppercase;color:#92400e;">C. Accessoires &amp; Joues de Caisson à Préparer (Articles Stockés non coupés) :</div>
+  <div style="font-weight:900;font-size:13px;margin:10px 0 4px 0;text-transform:uppercase;color:#92400e;">C. Accessoires &amp; Joues de Caisson à Préparer (Articles Stockés non coupés) :</div>
   <table style="table-layout:fixed;width:100%;">
+    <colgroup>
+      <col style="width:14%;">
+      <col style="width:14%;">
+      <col style="width:34%;">
+      <col style="width:16%;">
+      <col style="width:11%;">
+      <col style="width:11%;">
+    </colgroup>
     <thead><tr>
       <th style="width:14%;">Famille</th>
       <th style="width:14%;">Code Art</th>
@@ -1480,7 +1537,7 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm 6mm 8mm 6mm;
+            margin: 8mm 8mm 8mm 8mm;
           }
           html, body {
             height: auto !important;
@@ -1491,8 +1548,8 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
             color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            font-size: 11px !important;
-            line-height: 1.3 !important;
+            font-size: 12.5px !important;
+            line-height: 1.35 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -1562,6 +1619,12 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
             box-sizing: border-box !important;
             word-break: break-word !important;
             overflow-wrap: break-word !important;
+            font-size: 12px !important;
+            padding: 5px 6px !important;
+          }
+          th {
+            font-size: 12px !important;
+            font-weight: 900 !important;
           }
         }
       `}</style>
@@ -1842,17 +1905,28 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                   </div>
                   <div className="border-2 border-amber-400 overflow-hidden rounded">
                     <table className="w-full text-left text-sm border-collapse table-fixed">
+                      <colgroup>
+                        <col className="w-[8%]" />
+                        <col className="w-[14%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[13%]" />
+                        <col className="w-[9%]" />
+                        <col className="w-[16%]" />
+                        <col className="w-[8%]" />
+                        <col className="w-[10%]" />
+                        <col className="w-[11%]" />
+                      </colgroup>
                       <thead className="bg-amber-100 text-amber-950 font-black border-b-2 border-amber-400 text-xs sm:text-sm">
                         <tr>
-                          <th className="py-1.5 px-2 text-center w-[8%] border-r border-amber-300">Repère</th>
-                          <th className="py-1.5 px-2 border-r border-amber-300 w-[14%]">Dim. Finie (L × H)</th>
-                          <th className="py-1.5 px-2 border-r border-amber-300 w-[11%]">Ouverture</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-300 bg-amber-200 w-[13%]">Coupe Fixe Maille</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-300 w-[9%]">Nb Plis (+2)</th>
-                          <th className="py-1.5 px-2 border-r border-amber-300 w-[15%]">Guidage &amp; Cordelettes</th>
-                          <th className="py-1.5 px-2 text-center border-r border-amber-300 w-[8%]">Surface</th>
-                          <th className="py-1.5 px-2 border-r border-amber-300 w-[10%]">Article</th>
-                          <th className="py-1.5 px-2 w-[12%]">Origine Toile</th>
+                          <th className="py-2 px-2 text-center border-r border-amber-300">Repère</th>
+                          <th className="py-2 px-2 border-r border-amber-300">Dim. Finie (L × H)</th>
+                          <th className="py-2 px-2 border-r border-amber-300">Ouverture</th>
+                          <th className="py-2 px-2 text-center border-r border-amber-300 bg-amber-200">Coupe Fixe Maille</th>
+                          <th className="py-2 px-2 text-center border-r border-amber-300">Nb Plis (+2)</th>
+                          <th className="py-2 px-2 border-r border-amber-300 bg-purple-50 text-purple-950">Longueur Fil / Corde (Mètres)</th>
+                          <th className="py-2 px-2 text-center border-r border-amber-300">Surface</th>
+                          <th className="py-2 px-2 border-r border-amber-300">Article</th>
+                          <th className="py-2 px-2">Origine Toile</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-amber-200 font-mono text-sm bg-white">
@@ -1863,17 +1937,21 @@ export const OrdreFabricationModal: React.FC<OrdreFabricationModalProps> = ({
                           return (
                             <tr key={m.id || idx} className="hover:bg-amber-50/50">
                               <td className="py-2 px-1 text-center font-black text-amber-900 border-r border-amber-200 text-xs sm:text-sm">{m.repere}</td>
-                              <td className="py-2 px-2 font-black text-slate-950 border-r border-amber-200 text-xs">{m.largeur} × {m.hauteur} mm (×{m.quantite})</td>
+                              <td className="py-2 px-2 font-black text-slate-950 border-r border-amber-200 text-xs sm:text-sm">{m.largeur} × {m.hauteur} mm (×{m.quantite})</td>
                               <td className="py-2 px-1 font-sans text-xs font-bold border-r border-amber-200 text-slate-800">
                                 {m.typeOuverture === 'PORTE_FENETRE' ? 'Porte-Fenêtre' : m.typeOuverture === 'DOUBLE_VANTAUX' ? 'Baie 2 Vtx' : m.typeOuverture === 'CENTRALE' ? 'Centrale' : m.typeOuverture === 'FIXE' ? 'Fixe' : 'Fenêtre'}
                               </td>
-                              <td className="py-2 px-1 text-center font-black text-amber-900 border-r border-amber-200 text-xs bg-amber-50">
+                              <td className="py-2 px-1 text-center font-black text-amber-900 border-r border-amber-200 text-xs sm:text-sm bg-amber-50">
                                 {c.dimension_fixe_requise} mm <span className="text-[10px] font-normal text-slate-600">({c.dimension_fixe_est === 'H' ? 'H' : 'L'})</span>
                               </td>
-                              <td className="py-2 px-1 text-center font-black text-emerald-800 border-r border-amber-200 text-xs">{c.nb_plis_requis} plis</td>
-                              <td className="py-2 px-2 text-xs border-r border-amber-200 font-sans">
-                                <div><strong className="text-slate-900 font-mono text-[11px]">{c.nb_fils_guidage} fils</strong> (~{c.distance_cordes}mm)</div>
-                                <div className="text-purple-800 font-bold font-mono text-[11px]">Corde : {c.longueur_corde_totale_m}m</div>
+                              <td className="py-2 px-1 text-center font-black text-emerald-800 border-r border-amber-200 text-xs sm:text-sm">{c.nb_plis_requis} plis</td>
+                              <td className="py-2 px-2 text-xs border-r border-amber-200 font-sans bg-purple-50/40">
+                                <div className="font-black text-purple-900 font-mono text-sm sm:text-base">
+                                  {c.longueur_corde_totale_m} m <span className="text-xs text-purple-700 font-bold font-sans">({c.longueur_corde_totale_m} MÈTRES)</span>
+                                </div>
+                                <div className="text-slate-800 font-semibold text-[11px] mt-0.5">
+                                  <strong className="text-slate-950 font-mono">{c.nb_fils_guidage} fils</strong> · {c.longueur_corde_unitaire_m} m/fil · entraxe {(c.distance_cordes / 1000).toFixed(2)} m ({c.distance_cordes} mm)
+                                </div>
                               </td>
                               <td className="py-2 px-1 text-center font-black text-slate-900 border-r border-amber-200 text-xs sm:text-sm">{c.superficie_m2} m²</td>
                               <td className="py-2 px-1 font-sans text-xs font-semibold text-slate-700 border-r border-amber-200">{m.articleDesignationMaille || 'MSTQ MAILLE PLISSÉE 20mm'}</td>

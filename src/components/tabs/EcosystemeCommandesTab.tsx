@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   Article,
   ChuteItem,
@@ -221,6 +221,90 @@ export const EcosystemeCommandesTab: React.FC<EcosystemeCommandesTabProps> = ({
 
   const numCommande = getActiveNumCommande();
   const [filterCmdActive, setFilterCmdActive] = useState<string>('TOUTES');
+
+  // =========================================================================
+  // VÉRIFICATION D'UNICITÉ DU NUMÉRO DE COMMANDE (À LA SAISIE ET VALIDATION)
+  // =========================================================================
+  interface InfoConflitNumCommande {
+    numEnConflit: string;
+    nomClientFinal: string;
+    donneurOrdre?: string;
+    dateCommande?: string;
+    dossierId: string;
+    statut?: string;
+  }
+
+  const verifierUniciteNumeroCommande = useCallback((
+    numATester: string,
+    dossierExcluId: string | null = editingDossierId
+  ): InfoConflitNumCommande | null => {
+    if (!numATester || !numATester.trim()) return null;
+
+    const rawClean = numATester.trim().toUpperCase().replace(/\s+/g, '');
+    const sansPref = extraireNumeroSansPrefixe(numATester, clientCodifications).trim().toUpperCase();
+
+    if (!sansPref && !rawClean) return null;
+
+    for (const d of (dossiers || [])) {
+      if (dossierExcluId && d.id === dossierExcluId) continue;
+
+      // Références associées au dossier d
+      const refsDossier: string[] = [
+        d.refCommande,
+        d.numCommandeCaisson,
+        d.numCommandeSousFace,
+        d.numCommandeTablier,
+        d.numCommandeMoustiquaire,
+        d.numCommandePrecadre,
+        ...(d.articlesCaissons || []).map(c => c.refCommande),
+        ...(d.articlesCaissons || []).map(c => c.sfRefCommande),
+        ...(d.articlesTabliers || []).map(t => t.refCommande),
+        ...(d.articlesMoustiquaires || []).map(m => m.refCommande),
+        ...(d.articlesPrecadres || []).map(p => p.refCommande)
+      ].filter(Boolean) as string[];
+
+      for (const ref of refsDossier) {
+        if (!ref || !ref.trim()) continue;
+        const refClean = ref.trim().toUpperCase().replace(/\s+/g, '');
+        const refSansPref = extraireNumeroSansPrefixe(ref, clientCodifications).trim().toUpperCase();
+
+        // Conflit direct sur la chaîne exacte
+        if (rawClean === refClean) {
+          return {
+            numEnConflit: ref,
+            nomClientFinal: d.nomClientFinal || d.donneurOrdre || 'Client',
+            donneurOrdre: d.donneurOrdre,
+            dateCommande: d.dateCommande,
+            dossierId: d.id,
+            statut: d.statut
+          };
+        }
+
+        // Conflit sur les chiffres significatifs du numéro pour le même donneur d'ordre ou globalement
+        if (sansPref && refSansPref && sansPref === refSansPref) {
+          const memeDonneur = !d.donneurOrdre || !monClient || d.donneurOrdre.trim().toUpperCase() === monClient.trim().toUpperCase();
+          if (memeDonneur) {
+            return {
+              numEnConflit: ref,
+              nomClientFinal: d.nomClientFinal || d.donneurOrdre || 'Client',
+              donneurOrdre: d.donneurOrdre,
+              dateCommande: d.dateCommande,
+              dossierId: d.id,
+              statut: d.statut
+            };
+          }
+        }
+      }
+    }
+
+    return null;
+  }, [dossiers, editingDossierId, clientCodifications, monClient]);
+
+  // Conflit sur le numéro de commande en cours de saisie pour l'onglet actif
+  const conflitNumCmdActif = useMemo(() => {
+    const currentNum = getActiveNumCommande();
+    return verifierUniciteNumeroCommande(currentNum);
+  }, [getActiveNumCommande, verifierUniciteNumeroCommande]);
 
   // =========================================================================
   // 4. CONDITIONS & EXIGENCES PAR DÉFAUT (RÈGLES D'HÉRITAGE EN HAUT)
@@ -2967,6 +3051,8 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
           ? 'N° Commande Moustiquaire'
           : 'N° Commande Précadre';
       manquants.push(famNom);
+    } else if (conflitNumCmdActif) {
+      manquants.push(`N° Commande UNIQUE requis (Le N° "${conflitNumCmdActif.numEnConflit}" existe déjà dans le dossier "${conflitNumCmdActif.nomClientFinal}")`);
     }
 
     // 4. Profilés et dimensions selon la famille
@@ -3042,7 +3128,8 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
     mstqConfig,
     inputL,
     inputH,
-    inputQte
+    inputQte,
+    conflitNumCmdActif
   ]);
 
   const canAjouterLigne = champsManquants.length === 0;
@@ -3050,6 +3137,12 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
   // AJOUT D'UNE LIGNE AVEC HÉRITAGE AUTOMATIQUE DES RÉGLAGES EN HAUT
   const handleAjouterLigne = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
+    if (conflitNumCmdActif) {
+      showFlashNotification(`⛔ Le numéro de commande "${getActiveNumCommande()}" est déjà utilisé dans le dossier "${conflitNumCmdActif.nomClientFinal}". Le numéro doit être unique !`, 'warn');
+      if (inputNumCmdRef.current) inputNumCmdRef.current.focus();
+      return;
+    }
 
     if (!canAjouterLigne) {
       showFlashNotification(`⚠️ Impossible de valider : veuillez renseigner [ ${champsManquants.join(' • ')} ]`, 'warn');
@@ -3314,6 +3407,24 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
         showFlashNotification('⚠️ Veuillez saisir au moins une ligne dans la commande avant d\'enregistrer.', 'warn');
         if (inputLRef.current) inputLRef.current.focus();
         return;
+      }
+
+      // Vérification d'unicité absolue de tous les numéros de commande saisis
+      const numCmdsToCheck = [
+        numCommandeCaisson,
+        numCommandeSousFace,
+        numCommandeTablier,
+        numCommandeMoustiquaire,
+        numCommandePrecadre,
+        refPrincipal
+      ].filter(Boolean);
+
+      for (const num of numCmdsToCheck) {
+        const conflit = verifierUniciteNumeroCommande(num, editingDossierId);
+        if (conflit) {
+          showFlashNotification(`⛔ Impossible d'enregistrer : Le numéro de commande "${num}" existe déjà dans le dossier "${conflit.nomClientFinal}". Chaque commande doit obligatoirement avoir un numéro unique !`, 'warn');
+          return;
+        }
       }
 
       if (editingDossierId) {
@@ -3748,9 +3859,15 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
               </div>
 
               {/* Champ de Saisie avec Préfixe Automatique */}
-              <div className="flex items-stretch rounded-lg border border-slate-700 overflow-hidden bg-slate-900 shadow-inner focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-400/40">
+              <div className={`flex items-stretch rounded-lg border overflow-hidden bg-slate-900 shadow-inner transition ${
+                conflitNumCmdActif
+                  ? 'border-red-500 ring-2 ring-red-500/50 bg-red-950/20'
+                  : 'border-slate-700 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-400/40'
+              }`}>
                 <span
-                  className="px-3 py-1.5 bg-slate-800 text-amber-300 font-mono font-black text-xs flex items-center border-r border-slate-700 select-none cursor-default"
+                  className={`px-3 py-1.5 font-mono font-black text-xs flex items-center border-r select-none cursor-default ${
+                    conflitNumCmdActif ? 'bg-red-900/60 text-red-200 border-red-700' : 'bg-slate-800 text-amber-300 border-slate-700'
+                  }`}
                   title={`Préfixe officiel pour ${monClient}`}
                 >
                   {currentPrefix}
@@ -3779,19 +3896,26 @@ const getHauteurLameTablier = (code?: string, desig?: string, fallbackHauteur?: 
                     }
                   }}
                   placeholder="ex: 260460"
-                  className="bg-transparent font-mono font-black text-sm px-3 py-1.5 text-emerald-300 w-36 focus:outline-none placeholder:text-slate-500 placeholder:font-normal placeholder:text-xs"
+                  className={`bg-transparent font-mono font-black text-sm px-3 py-1.5 w-36 focus:outline-none placeholder:text-slate-500 placeholder:font-normal placeholder:text-xs ${
+                    conflitNumCmdActif ? 'text-red-300' : 'text-emerald-300'
+                  }`}
                 />
               </div>
 
-              {/* Indicateur de validation direct */}
+              {/* Indicateur de validation direct & avertissement unicité */}
               {!extraireNumeroSansPrefixe(getActiveNumCommande(), clientCodifications) ? (
                 <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-lg font-bold flex items-center gap-1.5 animate-pulse" title="Saisissez les chiffres de la commande (Appuyez sur Entrée ↵ pour passer directement aux dimensions)">
                   <span>⚠️ N° à saisir pour cet onglet (Entrée ↵)</span>
                 </span>
+              ) : conflitNumCmdActif ? (
+                <span className="text-xs bg-red-950 text-red-200 border-2 border-red-500 px-3 py-1.5 rounded-lg font-black flex items-center gap-2 shadow-lg shadow-red-950/60 animate-bounce" title={`Ce numéro existe déjà dans le dossier "${conflitNumCmdActif.nomClientFinal}". Chaque commande doit obligatoirement avoir un numéro unique !`}>
+                  <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>⛔ N° DÉJÀ UTILISÉ dans "{conflitNumCmdActif.nomClientFinal}" (N° unique obligatoire)</span>
+                </span>
               ) : (
-                <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-lg font-bold flex items-center gap-1.5" title="Le numéro est actif pour cette famille.">
+                <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-lg font-bold flex items-center gap-1.5" title="Le numéro est unique et valide pour cette commande.">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>✓ N° Actif : {getActiveNumCommande()}</span>
+                  <span>✓ N° Unique &amp; Actif : {getActiveNumCommande()}</span>
                 </span>
               )}
             </div>
